@@ -19,7 +19,7 @@ const Index = () => {
   }, []);
 
   return (
-    <PageLayout>
+    <PageLayout showContact={false}>
       <SEO 
         title="Bibliothèque Moderne - Système de Gestion Numérique" 
         description="Découvrez notre bibliothèque moderne avec catalogue numérique, système d'emprunt intelligent et services en ligne pour tous vos besoins de lecture et recherche."

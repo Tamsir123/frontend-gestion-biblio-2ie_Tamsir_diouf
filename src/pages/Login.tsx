@@ -78,14 +78,14 @@ const Login = () => {
         {/* Overlay Content */}
         <div className="absolute inset-0 z-20 flex items-center justify-center">
           <motion.div 
-            className="text-center text-white px-12"
+            className="text-center text-white px-8"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            <h1 className="text-4xl font-light mb-4">Bibliothèque 2iE</h1>
-            <div className="w-20 h-0.5 bg-white mx-auto mb-4"></div>
-            <p className="text-lg font-light opacity-90">
+            <h1 className="text-3xl font-light mb-3">Bibliothèque 2iE</h1>
+            <div className="w-16 h-0.5 bg-white mx-auto mb-3"></div>
+            <p className="text-base font-light opacity-90">
               Votre espace numérique d'apprentissage
             </p>
           </motion.div>
@@ -94,14 +94,14 @@ const Login = () => {
 
       {/* Right Side - Login Form */}
       <motion.div 
-        className="w-full lg:w-1/2 flex items-center justify-center bg-white"
+        className="w-full lg:w-1/2 flex items-center justify-center bg-white p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="max-w-md w-full px-8">
+        <div className="max-w-sm w-full">
           {/* Close Button */}
-          <div className="flex justify-end mb-8">
+          <div className="flex justify-end mb-6">
             <Link 
               to="/" 
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -112,19 +112,19 @@ const Login = () => {
 
           {/* Header */}
           <motion.div 
-            className="text-center mb-12"
+            className="text-center mb-8"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            <h2 className="text-3xl font-light text-black mb-2">Connexion</h2>
-            <div className="w-12 h-0.5 bg-black mx-auto"></div>
+            <h2 className="text-2xl font-light text-black mb-2">Connexion</h2>
+            <div className="w-10 h-0.5 bg-black mx-auto"></div>
           </motion.div>
 
           {/* Error Message */}
           {error && (
             <motion.div 
-              className="mb-6 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm"
+              className="mb-4 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
@@ -135,38 +135,38 @@ const Login = () => {
           {/* Login Form */}
           <motion.form 
             onSubmit={handleSubmit} 
-            className="space-y-6"
+            className="space-y-4"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
             {/* Email Field */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   name="email"
                   type="email"
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="pl-10 h-12 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white transition-colors"
+                  className="pl-10 h-10 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white transition-colors text-sm"
                   placeholder="Adresse email"
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="pl-10 pr-12 h-12 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white transition-colors"
+                  className="pl-10 pr-10 h-10 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white transition-colors text-sm"
                   placeholder="Mot de passe"
                 />
                 <button
@@ -174,13 +174,13 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* Remember Me */}
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs">
               <label className="flex items-center text-gray-600">
                 <input
                   type="checkbox"
@@ -200,11 +200,11 @@ const Login = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-black hover:bg-gray-800 text-white font-normal rounded-none transition-all duration-200"
+              className="w-full h-10 bg-black hover:bg-gray-800 text-white font-normal rounded-none transition-all duration-200 text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Connexion...
                 </div>
               ) : (
@@ -218,15 +218,15 @@ const Login = () => {
 
           {/* Sign Up Link */}
           <motion.div 
-            className="text-center mt-8"
+            className="text-center mt-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}
           >
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm">
               Pas encore de compte ?{' '}
               <Link
-                to="/register"
+                to="/inscription"
                 className="text-black hover:underline font-medium"
               >
                 Créer un compte

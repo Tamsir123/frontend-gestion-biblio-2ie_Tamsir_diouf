@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Inscription from "./pages/Incrisption";
+import Catalogue from "./pages/Catalogue";
 import NotFound from "./pages/NotFound";
 import FireCatProject from "./pages/FireCatProject";
 import SportRetailProject from "./pages/SportRetailProject";
@@ -20,7 +22,6 @@ import Careers from "./pages/Careers";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Blog from "./pages/Blog";
 import BlogPostDetail from "./pages/BlogPostDetail";
-import Inscription from "./pages/Incrisption";
 
 const App = () => {
   const [queryClient] = useState(() => new QueryClient());
@@ -35,6 +36,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/inscription" element={<Inscription />} />
+            <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/projects/firecat" element={<FireCatProject />} />
             <Route path="/projects/sport-retail" element={<SportRetailProject />} />
             <Route path="/projects/workwear" element={<WorkwearProject />} />

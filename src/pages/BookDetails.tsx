@@ -43,6 +43,12 @@ const BookDetails = () => {
   const [loading, setLoading] = useState(true)
   const [borrowing, setBorrowing] = useState(false)
   const [error, setError] = useState('')
+  
+  // États pour la pagination des avis
+  const [currentReviewPage, setCurrentReviewPage] = useState(1)
+  const [showAllReviews, setShowAllReviews] = useState(false)
+  const reviewsPerPage = 3 // Nombre d'avis par page
+  const initialReviewsCount = 2 // Nombre d'avis affichés initialement
 
   useEffect(() => {
     if (id) {
@@ -146,30 +152,110 @@ const BookDetails = () => {
             is_approved: true,
             created_at: "2024-01-20",
             user_name: "Fatou Diallo"
+          },
+          {
+            id: 3,
+            user_id: 3,
+            book_id: 1,
+            rating: 5,
+            comment: "Ce livre m'a permis de comprendre enfin les concepts d'apprentissage automatique. Très bien structuré !",
+            is_approved: true,
+            created_at: "2024-01-22",
+            user_name: "Kouamé N'Guessan"
+          },
+          {
+            id: 4,
+            user_id: 4,
+            book_id: 1,
+            rating: 4,
+            comment: "Bon livre d'introduction, mais certains chapitres mériteraient d'être approfondis.",
+            is_approved: true,
+            created_at: "2024-01-25",
+            user_name: "Aminata Ba"
+          },
+          {
+            id: 5,
+            user_id: 5,
+            book_id: 1,
+            rating: 5,
+            comment: "Parfait pour les étudiants en informatique. Les algorithmes sont bien expliqués avec des exemples concrets.",
+            is_approved: true,
+            created_at: "2024-01-28",
+            user_name: "Mamadou Konaté"
+          },
+          {
+            id: 6,
+            user_id: 6,
+            book_id: 1,
+            rating: 3,
+            comment: "Contenu intéressant mais parfois trop technique pour un débutant. Il faut avoir quelques bases en programmation.",
+            is_approved: true,
+            created_at: "2024-02-01",
+            user_name: "Salimata Ouattara"
+          },
+          {
+            id: 7,
+            user_id: 7,
+            book_id: 1,
+            rating: 5,
+            comment: "Excellent investissement ! Ce livre couvre tous les aspects essentiels de l'IA moderne.",
+            is_approved: true,
+            created_at: "2024-02-05",
+            user_name: "Ibrahim Sow"
+          },
+          {
+            id: 8,
+            user_id: 8,
+            book_id: 1,
+            rating: 4,
+            comment: "Très utile pour mon projet de fin d'études. Les références bibliographiques sont excellentes.",
+            is_approved: true,
+            created_at: "2024-02-10",
+            user_name: "Mariam Diabaté"
           }
         ],
         2: [
           {
-            id: 3,
-            user_id: 3,
+            id: 9,
+            user_id: 9,
             book_id: 2,
             rating: 5,
             comment: "Une analyse remarquable de l'Afrique contemporaine. Indispensable pour comprendre notre histoire récente.",
             is_approved: true,
             created_at: "2024-01-10",
             user_name: "Moussa Sawadogo"
+          },
+          {
+            id: 10,
+            user_id: 10,
+            book_id: 2,
+            rating: 4,
+            comment: "Très documenté et bien écrit. L'auteur maîtrise parfaitement son sujet.",
+            is_approved: true,
+            created_at: "2024-01-18",
+            user_name: "Kadiatou Camara"
           }
         ],
         3: [
           {
-            id: 4,
-            user_id: 4,
+            id: 11,
+            user_id: 11,
             book_id: 3,
             rating: 4,
             comment: "Très complet pour les mathématiques appliquées. Les exercices sont bien graduées.",
             is_approved: true,
             created_at: "2024-01-25",
             user_name: "Aïcha Ouédraogo"
+          },
+          {
+            id: 12,
+            user_id: 12,
+            book_id: 3,
+            rating: 5,
+            comment: "Manuel de référence excellent ! Indispensable pour tous les étudiants ingénieurs.",
+            is_approved: true,
+            created_at: "2024-02-02",
+            user_name: "Seydou Cissé"
           }
         ]
       }
@@ -261,6 +347,35 @@ const BookDetails = () => {
     if (reviews.length === 0) return 0
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0)
     return Math.round((sum / reviews.length) * 10) / 10
+  }
+
+  // Fonctions pour la pagination des avis
+  const getDisplayedReviews = () => {
+    if (showAllReviews) {
+      const startIndex = (currentReviewPage - 1) * reviewsPerPage
+      const endIndex = startIndex + reviewsPerPage
+      return reviews.slice(startIndex, endIndex)
+    } else {
+      return reviews.slice(0, initialReviewsCount)
+    }
+  }
+
+  const getTotalReviewPages = () => {
+    return Math.ceil(reviews.length / reviewsPerPage)
+  }
+
+  const handleShowMoreReviews = () => {
+    setShowAllReviews(true)
+    setCurrentReviewPage(1)
+  }
+
+  const handleShowLessReviews = () => {
+    setShowAllReviews(false)
+    setCurrentReviewPage(1)
+  }
+
+  const handleReviewPageChange = (page: number) => {
+    setCurrentReviewPage(page)
   }
 
   if (loading) {
@@ -454,7 +569,7 @@ const BookDetails = () => {
                   <CardContent className="p-6">
                     <h3 className="text-lg font-semibold mb-4">Avis des lecteurs</h3>
                     <div className="space-y-4">
-                      {reviews.slice(0, 3).map((review) => (
+                      {getDisplayedReviews().map((review) => (
                         <div key={review.id} className="border-l-2 border-gray-200 pl-4">
                           <div className="flex items-center mb-2">
                             <div className="flex items-center">
@@ -476,6 +591,47 @@ const BookDetails = () => {
                           <p className="text-gray-700">{review.comment}</p>
                         </div>
                       ))}
+
+                      {/* Pagination des avis */}
+                      {reviews.length > initialReviewsCount && !showAllReviews && (
+                        <div className="flex justify-center">
+                          <Button 
+                            variant="outline" 
+                            onClick={handleShowMoreReviews}
+                            className="mt-4"
+                          >
+                            Voir plus d'avis
+                          </Button>
+                        </div>
+                      )}
+
+                      {showAllReviews && (
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-500">
+                              Page {currentReviewPage} sur {getTotalReviewPages()}
+                            </span>
+                            <Button 
+                              variant="outline" 
+                              onClick={handleShowLessReviews}
+                            >
+                              Voir moins d'avis
+                            </Button>
+                          </div>
+                          <div className="flex justify-center">
+                            {[...Array(getTotalReviewPages())].map((_, i) => (
+                              <Button
+                                key={i}
+                                variant={currentReviewPage === i + 1 ? "default" : "outline"}
+                                onClick={() => handleReviewPageChange(i + 1)}
+                                className="mx-1"
+                              >
+                                {i + 1}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

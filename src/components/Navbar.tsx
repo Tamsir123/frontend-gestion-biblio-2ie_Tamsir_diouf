@@ -212,6 +212,16 @@ const Navbar = () => {
                 <ShoppingCart className="w-4 h-4" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
               </Button>
+
+              <Link 
+                to="/mes-emprunts"
+                className={cn("flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors", 
+                  isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10"
+                )}
+              >
+                <Book className="w-4 h-4 mr-2" />
+                Mes Emprunts
+              </Link>
               
               <Button 
                 variant="ghost" 

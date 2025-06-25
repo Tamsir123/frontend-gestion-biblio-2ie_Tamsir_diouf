@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Eye, EyeOff, Lock, Mail, User, X, ArrowRight } from 'lucide-react';
 
-const Login = () => {
+const Inscription = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: '',
+    role: 'student'
   });
 
   const navigate = useNavigate();
@@ -22,35 +28,71 @@ const Login = () => {
       [e.target.name]: e.target.value
     });
     if (error) setError('');
+    if (success) setSuccess('');
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData({
+      ...formData,
+      role: value
+    });
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setError('Le nom complet est requis');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError('L\'adresse email est requise');
+      return false;
+    }
+    if (!formData.email.includes('@')) {
+      setError('Veuillez entrer une adresse email valide');
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        if (data.user.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
+        setSuccess('Compte créé avec succès !');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } else {
-        setError(data.message || 'Erreur de connexion');
+        setError(data.message || 'Erreur lors de la création du compte');
       }
     } catch (err) {
       setError('Erreur de connexion au serveur');
@@ -70,8 +112,8 @@ const Login = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/70 z-10" />
         <img 
-          src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=800&fit=crop" 
-          alt="Bibliothèque" 
+          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop" 
+          alt="Bibliothèque Moderne" 
           className="w-full h-full object-cover"
         />
         
@@ -83,16 +125,16 @@ const Login = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            <h1 className="text-4xl font-light mb-4">Bibliothèque 2iE</h1>
+            <h1 className="text-4xl font-light mb-4">Rejoignez-nous</h1>
             <div className="w-20 h-0.5 bg-white mx-auto mb-4"></div>
             <p className="text-lg font-light opacity-90">
-              Votre espace numérique d'apprentissage
+              Créez votre compte et accédez à nos ressources
             </p>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Register Form */}
       <motion.div 
         className="w-full lg:w-1/2 flex items-center justify-center bg-white"
         initial={{ opacity: 0 }}
@@ -117,9 +159,20 @@ const Login = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            <h2 className="text-3xl font-light text-black mb-2">Connexion</h2>
+            <h2 className="text-3xl font-light text-black mb-2">Inscription</h2>
             <div className="w-12 h-0.5 bg-black mx-auto"></div>
           </motion.div>
+
+          {/* Success Message */}
+          {success && (
+            <motion.div 
+              className="mb-6 p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {success}
+            </motion.div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -132,7 +185,7 @@ const Login = () => {
             </motion.div>
           )}
 
-          {/* Login Form */}
+          {/* Register Form */}
           <motion.form 
             onSubmit={handleSubmit} 
             className="space-y-6"
@@ -140,6 +193,22 @@ const Login = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
+            {/* Name Field */}
+            <div className="space-y-2">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="pl-10 h-12 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white transition-colors"
+                  placeholder="Nom complet"
+                />
+              </div>
+            </div>
+
             {/* Email Field */}
             <div className="space-y-2">
               <div className="relative">
@@ -154,6 +223,19 @@ const Login = () => {
                   placeholder="Adresse email"
                 />
               </div>
+            </div>
+
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <Select value={formData.role} onValueChange={handleRoleChange}>
+                <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white">
+                  <SelectValue placeholder="Type de compte" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Étudiant</SelectItem>
+                  <SelectItem value="admin">Administrateur</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Password Field */}
@@ -179,21 +261,39 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Remember Me */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center text-gray-600">
-                <input
-                  type="checkbox"
-                  className="mr-2 rounded border-gray-300 text-black focus:ring-0"
+            {/* Confirm Password Field */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="pl-10 pr-12 h-12 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white transition-colors"
+                  placeholder="Confirmer le mot de passe"
                 />
-                Se souvenir de moi
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-gray-600 hover:text-black transition-colors"
-              >
-                Mot de passe oublié ?
-              </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Terms Checkbox */}
+            <div className="flex items-start text-sm">
+              <input
+                type="checkbox"
+                required
+                className="mr-2 mt-1 rounded border-gray-300 text-black focus:ring-0"
+              />
+              <span className="text-gray-600">
+                J'accepte les conditions d'utilisation
+              </span>
             </div>
 
             {/* Submit Button */}
@@ -205,18 +305,18 @@ const Login = () => {
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Connexion...
+                  Création...
                 </div>
               ) : (
                 <div className="flex items-center justify-center">
-                  Se connecter
+                  Créer mon compte
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </div>
               )}
             </Button>
           </motion.form>
 
-          {/* Sign Up Link */}
+          {/* Login Link */}
           <motion.div 
             className="text-center mt-8"
             initial={{ opacity: 0 }}
@@ -224,24 +324,14 @@ const Login = () => {
             transition={{ delay: 0.6, duration: 0.6 }}
           >
             <p className="text-gray-600">
-              Pas encore de compte ?{' '}
+              Vous avez déjà un compte ?{' '}
               <Link
-                to="/register"
+                to="/login"
                 className="text-black hover:underline font-medium"
               >
-                Créer un compte
+                Se connecter
               </Link>
             </p>
-          </motion.div>
-
-          {/* Demo Info */}
-          <motion.div 
-            className="mt-12 p-4 bg-gray-50 text-center text-xs text-gray-500"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-          >
-            <p><strong>Demo :</strong> admin@2ie.edu / admin123</p>
           </motion.div>
         </div>
       </motion.div>
@@ -249,4 +339,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Inscription;

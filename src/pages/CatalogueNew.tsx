@@ -84,7 +84,7 @@ const Catalogue = () => {
           author: "Dr. Marie Dubois",
           isbn: "978-2-123456-78-9",
           genre: "Technologie",
-          description: "Une introduction complète aux concepts fondamentaux de l'IA moderne, incluant l'apprentissage automatique et les réseaux de neurones.",
+          description: "Une introduction complète aux concepts fondamentaux de l'IA moderne.",
           total_quantity: 5,
           available_quantity: 3,
           publication_year: 2023,
@@ -96,7 +96,7 @@ const Catalogue = () => {
           author: "Prof. Amadou Diallo",
           isbn: "978-2-987654-32-1",
           genre: "Histoire",
-          description: "Un regard approfondi sur l'évolution politique, sociale et culturelle de l'Afrique au XXe et XXIe siècles.",
+          description: "Un regard approfondi sur l'évolution de l'Afrique au XXe siècle.",
           total_quantity: 3,
           available_quantity: 0,
           publication_year: 2022,
@@ -108,7 +108,7 @@ const Catalogue = () => {
           author: "Prof. Jean-Claude Koné",
           isbn: "978-2-456789-12-3",
           genre: "Sciences",
-          description: "Manuel complet de mathématiques pour les étudiants en ingénierie : calcul différentiel, algèbre linéaire et statistiques.",
+          description: "Manuel complet de mathématiques pour les étudiants en ingénierie.",
           total_quantity: 8,
           available_quantity: 5,
           publication_year: 2023,
@@ -120,106 +120,10 @@ const Catalogue = () => {
           author: "Dr. Fatima Traoré",
           isbn: "978-2-789012-34-5",
           genre: "Littérature",
-          description: "Une exploration de la richesse littéraire africaine moderne à travers les œuvres d'auteurs emblématiques.",
+          description: "Une exploration de la richesse littéraire africaine moderne.",
           total_quantity: 4,
           available_quantity: 2,
           publication_year: 2022,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 5,
-          title: "Génie Civil et Construction Durable",
-          author: "Ing. Pierre Ouédraogo",
-          isbn: "978-2-345678-90-1",
-          genre: "Ingénierie",
-          description: "Principes de construction durable et techniques modernes du génie civil adaptées au contexte africain.",
-          total_quantity: 6,
-          available_quantity: 4,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 6,
-          title: "Économie du Développement en Afrique",
-          author: "Dr. Awa Ndiaye",
-          isbn: "978-2-678901-23-4",
-          genre: "Économie",
-          description: "Analyse des défis économiques contemporains et des stratégies de développement pour l'Afrique.",
-          total_quantity: 5,
-          available_quantity: 3,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 7,
-          title: "Programmation Python pour Débutants",
-          author: "Dr. Sarah Johnson",
-          isbn: "978-2-567890-12-3",
-          genre: "Informatique",
-          description: "Guide pratique pour apprendre Python de A à Z avec des projets concrets et des exercices progressifs.",
-          total_quantity: 10,
-          available_quantity: 8,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 8,
-          title: "Énergies Renouvelables et Développement",
-          author: "Prof. Michel Sawadogo",
-          isbn: "978-2-456789-01-2",
-          genre: "Environnement",
-          description: "Solutions énergétiques durables pour l'Afrique : solaire, éolien et biomasse.",
-          total_quantity: 4,
-          available_quantity: 1,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 9,
-          title: "Chimie Organique Fondamentale",
-          author: "Dr. Robert Kaboré",
-          isbn: "978-2-789012-45-6",
-          genre: "Sciences",
-          description: "Cours complet de chimie organique avec exercices corrigés et travaux pratiques.",
-          total_quantity: 7,
-          available_quantity: 5,
-          publication_year: 2022,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 10,
-          title: "Sociologie Urbaine Africaine",
-          author: "Prof. Aminata Sow",
-          isbn: "978-2-890123-56-7",
-          genre: "Sociologie",
-          description: "Étude des transformations urbaines en Afrique et de leurs impacts socioculturels.",
-          total_quantity: 3,
-          available_quantity: 2,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 11,
-          title: "Mécanique des Fluides Appliquée",
-          author: "Ing. David Compaoré",
-          isbn: "978-2-901234-67-8",
-          genre: "Ingénierie",
-          description: "Principes fondamentaux de la mécanique des fluides avec applications pratiques en ingénierie.",
-          total_quantity: 5,
-          available_quantity: 3,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 12,
-          title: "Marketing Digital en Afrique",
-          author: "Dr. Grace Mensah",
-          isbn: "978-2-012345-78-9",
-          genre: "Marketing",
-          description: "Stratégies de marketing numérique adaptées aux marchés africains et aux nouvelles technologies.",
-          total_quantity: 6,
-          available_quantity: 4,
-          publication_year: 2024,
           created_at: "2024-01-01"
         }
       ]
@@ -238,7 +142,7 @@ const Catalogue = () => {
         setGenres(data.genres || [])
       }
     } catch (error) {
-      setGenres(['Technologie', 'Histoire', 'Sciences', 'Littérature', 'Ingénierie', 'Économie', 'Informatique', 'Environnement', 'Sociologie', 'Marketing'])
+      setGenres(['Technologie', 'Histoire', 'Sciences', 'Littérature', 'Fiction'])
     }
   }
 
@@ -250,7 +154,7 @@ const Catalogue = () => {
         setAuthors(data.authors || [])
       }
     } catch (error) {
-      setAuthors(['Dr. Marie Dubois', 'Prof. Amadou Diallo', 'Prof. Jean-Claude Koné', 'Dr. Fatima Traoré', 'Ing. Pierre Ouédraogo', 'Dr. Awa Ndiaye', 'Dr. Sarah Johnson', 'Prof. Michel Sawadogo'])
+      setAuthors(['Dr. Marie Dubois', 'Prof. Amadou Diallo', 'Prof. Jean-Claude Koné', 'Dr. Fatima Traoré'])
     }
   }
 
@@ -300,37 +204,14 @@ const Catalogue = () => {
   }
 
   const getBookImage = (book: Book) => {
-    // Images spécifiques par livre pour plus de réalisme
-    const bookImages: { [key: number]: string } = {
-      1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=400&fit=crop', // IA
-      2: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop', // Histoire Afrique
-      3: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=300&h=400&fit=crop', // Mathématiques
-      4: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=400&fit=crop', // Littérature
-      5: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=300&h=400&fit=crop', // Génie Civil
-      6: 'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=300&h=400&fit=crop', // Économie
-      7: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=400&fit=crop', // Programmation
-      8: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=300&h=400&fit=crop', // Énergies renouvelables
-      9: 'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=300&h=400&fit=crop', // Chimie
-      10: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=300&h=400&fit=crop', // Sociologie urbaine
-      11: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=400&fit=crop', // Mécanique des fluides
-      12: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=400&fit=crop'  // Marketing digital
-    }
-
-    // Images par genre comme fallback
     const genreImages: { [key: string]: string } = {
-      'Technologie': 'https://images.unsplash.com/photo-1518709268805-4e9042af2ea0?w=300&h=400&fit=crop',
-      'Histoire': 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop',
-      'Sciences': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
-      'Littérature': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop',
-      'Ingénierie': 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=300&h=400&fit=crop',
-      'Économie': 'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=300&h=400&fit=crop',
-      'Informatique': 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=300&h=400&fit=crop',
-      'Environnement': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=400&fit=crop',
-      'Sociologie': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=300&h=400&fit=crop',
-      'Marketing': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=400&fit=crop'
+      'Technologie': 'https://images.unsplash.com/photo-1518709268805-4e9042af2ea0?w=600&h=400&fit=crop',
+      'Histoire': 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=400&fit=crop',
+      'Sciences': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop',
+      'Littérature': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&h=400&fit=crop',
+      'Fiction': 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=400&fit=crop'
     }
-
-    return bookImages[book.id] || genreImages[book.genre] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop'
+    return genreImages[book.genre] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=600&h=400&fit=crop'
   }
 
   if (loading) {
@@ -398,7 +279,7 @@ const Catalogue = () => {
                 placeholder="Rechercher par titre, auteur ou ISBN..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-black rounded-lg bg-gray-50 focus:bg-white transition-all"
+                className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-black rounded-none bg-gray-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -408,7 +289,7 @@ const Catalogue = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 border-2 border-gray-200 hover:border-black rounded-lg"
+                  className="flex items-center gap-2 border-2 border-gray-200 hover:border-black rounded-none"
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                   Filtres
@@ -446,7 +327,7 @@ const Catalogue = () => {
                       Genre
                     </label>
                     <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
+                      <SelectTrigger className="border-gray-200 focus:border-black rounded-none">
                         <SelectValue placeholder="Tous les genres" />
                       </SelectTrigger>
                       <SelectContent>
@@ -465,7 +346,7 @@ const Catalogue = () => {
                       Auteur
                     </label>
                     <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
+                      <SelectTrigger className="border-gray-200 focus:border-black rounded-none">
                         <SelectValue placeholder="Tous les auteurs" />
                       </SelectTrigger>
                       <SelectContent>
@@ -484,7 +365,7 @@ const Catalogue = () => {
                       Trier par
                     </label>
                     <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
+                      <SelectTrigger className="border-gray-200 focus:border-black rounded-none">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -514,7 +395,7 @@ const Catalogue = () => {
           </motion.div>
         ) : (
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -523,10 +404,10 @@ const Catalogue = () => {
               <motion.div
                 key={book.id}
                 variants={itemVariants}
-                className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl"
+                className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden"
               >
-                {/* Image - Format portrait comme un vrai livre */}
-                <div className="relative h-72 overflow-hidden rounded-t-xl">
+                {/* Image */}
+                <div className="relative h-64 overflow-hidden">
                   <img
                     src={getBookImage(book)}
                     alt={book.title}
@@ -534,66 +415,68 @@ const Catalogue = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
-                  {/* Badge de disponibilité seulement */}
-                  <div className="absolute top-3 right-3">
-                    <Badge 
-                      variant={book.available_quantity > 0 ? "default" : "destructive"}
-                      className={`${book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"} rounded-full px-2 py-1 text-xs`}
-                    >
-                      {book.available_quantity > 0 ? "●" : "●"}
-                    </Badge>
-                  </div>
-                  
-                  {/* Genre en bas de l'image */}
-                  <div className="absolute bottom-3 left-3">
+                  {/* Badges */}
+                  <div className="absolute top-4 left-4">
                     <Badge 
                       variant="secondary" 
-                      className="bg-black/80 text-white font-medium rounded-full px-2 py-1 text-xs"
+                      className="bg-white/90 text-black font-medium"
                     >
                       {book.genre}
                     </Badge>
                   </div>
+                  <div className="absolute top-4 right-4">
+                    <Badge 
+                      variant={book.available_quantity > 0 ? "default" : "destructive"}
+                      className={book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"}
+                    >
+                      {book.available_quantity > 0 ? "Disponible" : "Indisponible"}
+                    </Badge>
+                  </div>
                 </div>
 
-                {/* Contenu - Plus compact */}
-                <div className="p-4">
-                  <h3 className="text-base font-medium text-gray-900 mb-2 group-hover:text-black transition-colors line-clamp-2">
+                {/* Contenu */}
+                <div className="p-6">
+                  <h3 className="text-xl font-medium text-gray-900 mb-3 group-hover:text-black transition-colors">
                     {book.title}
                   </h3>
                   
-                  <div className="text-gray-600 mb-2">
-                    <span className="text-sm line-clamp-1">{book.author}</span>
+                  <div className="flex items-center text-gray-600 mb-2">
+                    <User className="w-4 h-4 mr-2" />
+                    <span className="text-sm">{book.author}</span>
                   </div>
                   
-                  <div className="text-gray-500 mb-3">
-                    <span className="text-xs">{book.publication_year}</span>
+                  <div className="flex items-center text-gray-600 mb-4">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span className="text-sm">{book.publication_year}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-500">
-                      {book.available_quantity}/{book.total_quantity} dispo.
+                  <p className="text-sm text-gray-600 mb-6 line-clamp-3">
+                    {book.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-sm text-gray-500">
+                      {book.available_quantity}/{book.total_quantity} exemplaire(s)
                     </span>
                     <span className="text-xs text-gray-400">
-                      {book.isbn.slice(-4)}
+                      ISBN: {book.isbn}
                     </span>
                   </div>
 
-                  {/* Actions - Plus compactes */}
-                  <div className="flex gap-2">
+                  {/* Actions */}
+                  <div className="flex gap-3">
                     <Button 
                       variant="outline" 
-                      size="sm"
-                      className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-lg text-xs"
-                      onClick={() => window.location.href = `/livre/${book.id}`}
+                      className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-none"
                     >
-                      Voir
+                      Détails
                     </Button>
                     <Button 
-                      size="sm"
-                      className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg text-xs"
+                      className="flex-1 bg-black hover:bg-gray-800 text-white rounded-none"
                       disabled={book.available_quantity === 0}
                     >
                       Emprunter
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>

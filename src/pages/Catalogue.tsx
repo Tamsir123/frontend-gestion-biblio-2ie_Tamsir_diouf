@@ -279,7 +279,7 @@ const Catalogue = () => {
                 placeholder="Rechercher par titre, auteur ou ISBN..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-black rounded-none bg-gray-50 focus:bg-white transition-all"
+                className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-black rounded-lg bg-gray-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -289,7 +289,7 @@ const Catalogue = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 border-2 border-gray-200 hover:border-black rounded-none"
+                  className="flex items-center gap-2 border-2 border-gray-200 hover:border-black rounded-lg"
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                   Filtres
@@ -327,7 +327,7 @@ const Catalogue = () => {
                       Genre
                     </label>
                     <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-none">
+                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
                         <SelectValue placeholder="Tous les genres" />
                       </SelectTrigger>
                       <SelectContent>
@@ -346,7 +346,7 @@ const Catalogue = () => {
                       Auteur
                     </label>
                     <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-none">
+                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
                         <SelectValue placeholder="Tous les auteurs" />
                       </SelectTrigger>
                       <SelectContent>
@@ -365,7 +365,7 @@ const Catalogue = () => {
                       Trier par
                     </label>
                     <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-none">
+                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -404,10 +404,10 @@ const Catalogue = () => {
               <motion.div
                 key={book.id}
                 variants={itemVariants}
-                className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden"
+                className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl"
               >
                 {/* Image */}
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-64 overflow-hidden rounded-t-xl">
                   <img
                     src={getBookImage(book)}
                     alt={book.title}
@@ -419,7 +419,7 @@ const Catalogue = () => {
                   <div className="absolute top-4 left-4">
                     <Badge 
                       variant="secondary" 
-                      className="bg-white/90 text-black font-medium"
+                      className="bg-white/90 text-black font-medium rounded-full px-3 py-1"
                     >
                       {book.genre}
                     </Badge>
@@ -427,7 +427,7 @@ const Catalogue = () => {
                   <div className="absolute top-4 right-4">
                     <Badge 
                       variant={book.available_quantity > 0 ? "default" : "destructive"}
-                      className={book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"}
+                      className={`${book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"} rounded-full px-3 py-1`}
                     >
                       {book.available_quantity > 0 ? "Disponible" : "Indisponible"}
                     </Badge>
@@ -467,12 +467,12 @@ const Catalogue = () => {
                   <div className="flex gap-3">
                     <Button 
                       variant="outline" 
-                      className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-none"
+                      className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-lg"
                     >
                       Détails
                     </Button>
                     <Button 
-                      className="flex-1 bg-black hover:bg-gray-800 text-white rounded-none"
+                      className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg"
                       disabled={book.available_quantity === 0}
                     >
                       Emprunter

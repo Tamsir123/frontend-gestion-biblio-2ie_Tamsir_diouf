@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,11 +112,12 @@ const Navbar = () => {
             <NavigationMenu className={cn(isScrolled ? "" : "text-white")}>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <Link to="/">
-                    <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white bg-transparent hover:bg-white/10")}>
-                      Accueil
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink 
+                    onClick={() => navigate('/')}
+                    className={cn(navigationMenuTriggerStyle(), isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white bg-transparent hover:bg-white/10", "cursor-pointer")}
+                  >
+                    Accueil
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
                 
                 <NavigationMenuItem>
@@ -125,31 +127,40 @@ const Navbar = () => {
                   <NavigationMenuContent>
                     <ul className="grid gap-3 p-4 w-[400px]">
                       <li>
-                        <Link to="/catalogue" className="block p-3 space-y-1 rounded-md hover:bg-blue-50">
+                        <NavigationMenuLink 
+                          onClick={() => navigate('/catalogue')}
+                          className="block p-3 space-y-1 rounded-md hover:bg-blue-50 cursor-pointer"
+                        >
                           <div className="font-medium flex items-center">
                             <Search className="w-4 h-4 mr-2 text-blue-600" />
                             Recherche Avancée
                           </div>
                           <p className="text-sm text-gray-500">Trouvez des livres par titre, auteur, sujet ou ISBN</p>
-                        </Link>
+                        </NavigationMenuLink>
                       </li>
                       <li>
-                        <Link to="/catalogue/nouveautes" className="block p-3 space-y-1 rounded-md hover:bg-blue-50">
+                        <NavigationMenuLink 
+                          onClick={() => navigate('/catalogue/nouveautes')}
+                          className="block p-3 space-y-1 rounded-md hover:bg-blue-50 cursor-pointer"
+                        >
                           <div className="font-medium flex items-center">
                             <Book className="w-4 h-4 mr-2 text-green-600" />
                             Nouveautés
                           </div>
                           <p className="text-sm text-gray-500">Découvrez les dernières acquisitions</p>
-                        </Link>
+                        </NavigationMenuLink>
                       </li>
                       <li>
-                        <Link to="/catalogue/categories" className="block p-3 space-y-1 rounded-md hover:bg-blue-50">
+                        <NavigationMenuLink 
+                          onClick={() => navigate('/catalogue/categories')}
+                          className="block p-3 space-y-1 rounded-md hover:bg-blue-50 cursor-pointer"
+                        >
                           <div className="font-medium flex items-center">
                             <Book className="w-4 h-4 mr-2 text-purple-600" />
                             Catégories
                           </div>
                           <p className="text-sm text-gray-500">Explorez par domaines d'études</p>
-                        </Link>
+                        </NavigationMenuLink>
                       </li>
                     </ul>
                   </NavigationMenuContent>
@@ -162,42 +173,52 @@ const Navbar = () => {
                   <NavigationMenuContent>
                     <ul className="grid gap-3 p-4 w-[400px]">
                       <li>
-                        <Link to="/services/espaces" className="block p-3 space-y-1 rounded-md hover:bg-blue-50">
+                        <NavigationMenuLink 
+                          onClick={() => navigate('/services/espaces')}
+                          className="block p-3 space-y-1 rounded-md hover:bg-blue-50 cursor-pointer"
+                        >
                           <div className="font-medium flex items-center">
                             <MapPin className="w-4 h-4 mr-2 text-blue-600" />
                             Espaces d'Étude
                           </div>
                           <p className="text-sm text-gray-500">Salles de lecture, espaces collaboratifs</p>
-                        </Link>
+                        </NavigationMenuLink>
                       </li>
                       <li>
-                        <Link to="/services/numeriques" className="block p-3 space-y-1 rounded-md hover:bg-blue-50">
+                        <NavigationMenuLink 
+                          onClick={() => navigate('/services/numeriques')}
+                          className="block p-3 space-y-1 rounded-md hover:bg-blue-50 cursor-pointer"
+                        >
                           <div className="font-medium flex items-center">
                             <Book className="w-4 h-4 mr-2 text-green-600" />
                             Ressources Numériques
                           </div>
                           <p className="text-sm text-gray-500">E-books, bases de données, articles</p>
-                        </Link>
+                        </NavigationMenuLink>
                       </li>
                       <li>
-                        <Link to="/services/formation" className="block p-3 space-y-1 rounded-md hover:bg-blue-50">
+                        <NavigationMenuLink 
+                          onClick={() => navigate('/services/formation')}
+                          className="block p-3 space-y-1 rounded-md hover:bg-blue-50 cursor-pointer"
+                        >
                           <div className="font-medium flex items-center">
                             <Users className="w-4 h-4 mr-2 text-purple-600" />
                             Formation
                           </div>
                           <p className="text-sm text-gray-500">Ateliers de recherche documentaire</p>
-                        </Link>
+                        </NavigationMenuLink>
                       </li>
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
                 
                 <NavigationMenuItem>
-                  <Link to="/about">
-                    <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white bg-transparent hover:bg-white/10")}>
-                      À Propos
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink 
+                    onClick={() => navigate('/about')}
+                    className={cn(navigationMenuTriggerStyle(), isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white bg-transparent hover:bg-white/10", "cursor-pointer")}
+                  >
+                    À Propos
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -207,25 +228,28 @@ const Navbar = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
+                onClick={() => navigate('/panier')}
                 className={cn("relative", isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
               >
                 <ShoppingCart className="w-4 h-4" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
               </Button>
 
-              <Link 
-                to="/mes-emprunts"
-                className={cn("flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors", 
-                  isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10"
-                )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/mes-emprunts')}
+                className={cn("flex items-center", isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
               >
                 <Book className="w-4 h-4 mr-2" />
                 Mes Emprunts
-              </Link>
+              </Button>
+
               
               <Button 
                 variant="ghost" 
                 size="sm" 
+                onClick={() => navigate('/profil')}
                 className={cn(isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
               >
                 <User className="w-4 h-4 mr-2" />
@@ -281,15 +305,17 @@ const Navbar = () => {
           </div>
 
           {/* Navigation Links */}
-          <Link to="/" className={cn("block px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")} onClick={() => {
-            setIsMenuOpen(false);
-            window.scrollTo(0, 0);
-          }}>
-            <div className="flex items-center">
-              <Book className="w-4 h-4 mr-3" />
-              Accueil
-            </div>
-          </Link>
+          <button 
+            onClick={() => {
+              navigate('/');
+              setIsMenuOpen(false);
+              window.scrollTo(0, 0);
+            }}
+            className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+          >
+            <Book className="w-4 h-4 mr-3" />
+            Accueil
+          </button>
           
           {/* Catalogue Dropdown */}
           <div className="block">
@@ -308,24 +334,36 @@ const Navbar = () => {
             </button>
             
             <div className="hidden ml-6 mt-2 space-y-2">
-              <Link to="/catalogue" className={cn("block px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")} onClick={() => {
-                setIsMenuOpen(false);
-                window.scrollTo(0, 0);
-              }}>
+              <button 
+                onClick={() => {
+                  navigate('/catalogue');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className={cn("block w-full text-left px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")}
+              >
                 Recherche Avancée
-              </Link>
-              <Link to="/catalogue/nouveautes" className={cn("block px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")} onClick={() => {
-                setIsMenuOpen(false);
-                window.scrollTo(0, 0);
-              }}>
+              </button>
+              <button 
+                onClick={() => {
+                  navigate('/catalogue/nouveautes');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className={cn("block w-full text-left px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")}
+              >
                 Nouveautés
-              </Link>
-              <Link to="/catalogue/categories" className={cn("block px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")} onClick={() => {
-                setIsMenuOpen(false);
-                window.scrollTo(0, 0);
-              }}>
+              </button>
+              <button 
+                onClick={() => {
+                  navigate('/catalogue/categories');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className={cn("block w-full text-left px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")}
+              >
                 Catégories
-              </Link>
+              </button>
             </div>
           </div>
           
@@ -346,53 +384,87 @@ const Navbar = () => {
             </button>
             
             <div className="hidden ml-6 mt-2 space-y-2">
-              <Link to="/services/espaces" className={cn("block px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")} onClick={() => {
-                setIsMenuOpen(false);
-                window.scrollTo(0, 0);
-              }}>
+              <button 
+                onClick={() => {
+                  navigate('/services/espaces');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className={cn("block w-full text-left px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")}
+              >
                 Espaces d'Étude
-              </Link>
-              <Link to="/services/numeriques" className={cn("block px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")} onClick={() => {
-                setIsMenuOpen(false);
-                window.scrollTo(0, 0);
-              }}>
+              </button>
+              <button 
+                onClick={() => {
+                  navigate('/services/numeriques');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className={cn("block w-full text-left px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")}
+              >
                 Ressources Numériques
-              </Link>
-              <Link to="/services/formation" className={cn("block px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")} onClick={() => {
-                setIsMenuOpen(false);
-                window.scrollTo(0, 0);
-              }}>
+              </button>
+              <button 
+                onClick={() => {
+                  navigate('/services/formation');
+                  setIsMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                className={cn("block w-full text-left px-3 py-2 rounded-md text-sm", isScrolled ? "text-gray-600 hover:bg-blue-50 hover:text-blue-600" : "text-gray-300 hover:bg-white/10 hover:text-white")}
+              >
                 Formation
-              </Link>
+              </button>
             </div>
           </div>
           
-          <Link to="/about" className={cn("block px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")} onClick={() => {
-            setIsMenuOpen(false);
-            window.scrollTo(0, 0);
-          }}>
-            <div className="flex items-center">
-              <MapPin className="w-4 h-4 mr-3" />
-              À Propos
-            </div>
-          </Link>
+          <button 
+            onClick={() => {
+              navigate('/about');
+              setIsMenuOpen(false);
+              window.scrollTo(0, 0);
+            }}
+            className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+          >
+            <MapPin className="w-4 h-4 mr-3" />
+            À Propos
+          </button>
           
           {/* Divider */}
           <hr className={cn("my-4", isScrolled ? "border-gray-200" : "border-white/20")} />
           
           {/* User Actions */}
           <div className="space-y-2">
-            <button className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}>
+            <button 
+              onClick={() => {
+                navigate('/panier');
+                setIsMenuOpen(false);
+              }}
+              className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+            >
               <ShoppingCart className="w-4 h-4 mr-3" />
               Panier (3)
             </button>
             
-            <button className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}>
+
+            
+            <button 
+              onClick={() => {
+                navigate('/profil');
+                setIsMenuOpen(false);
+              }}
+              className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+            >
               <User className="w-4 h-4 mr-3" />
               Mon Compte
             </button>
             
-            <Button className={cn("w-full justify-start", isScrolled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white text-blue-600 hover:bg-gray-100")}>
+            <Button 
+              onClick={() => {
+                navigate('/login');
+                setIsMenuOpen(false);
+              }}
+              className={cn("w-full justify-start", isScrolled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white text-blue-600 hover:bg-gray-100")}
+            >
               <LogIn className="w-4 h-4 mr-3" />
               Connexion
             </Button>

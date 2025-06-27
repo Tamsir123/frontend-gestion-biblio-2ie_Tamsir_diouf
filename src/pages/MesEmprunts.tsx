@@ -379,16 +379,16 @@ const MesEmprunts = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Emprunts en cours</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Emprunts en cours</h2>
           
           {activeBorrowings.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-sm">
-              <Book className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">Aucun emprunt actif</h3>
-              <p className="text-gray-600">Vous n'avez actuellement aucun livre emprunté</p>
+            <div className="text-center py-16 bg-white rounded-3xl shadow-sm border border-gray-100">
+              <Book className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+              <h3 className="text-2xl font-medium text-gray-900 mb-3">Aucun emprunt actif</h3>
+              <p className="text-gray-600 text-lg">Vous n'avez actuellement aucun livre emprunté</p>
             </div>
           ) : (
-            <div className="grid gap-6">
+            <div className="space-y-6">
               {activeBorrowings.map((borrowing) => {
                 const daysRemaining = getDaysRemaining(borrowing.due_date)
                 const isOverdue = daysRemaining < 0
@@ -397,118 +397,142 @@ const MesEmprunts = () => {
                 return (
                   <motion.div
                     key={borrowing.id}
-                    whileHover={{ y: -2 }}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                    whileHover={{ y: -3 }}
+                    className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300"
                   >
-                    <Card className="border-0 shadow-none">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-4">
-                            <img
-                              src={getBookImage(borrowing.book_id)}
-                              alt={borrowing.book_title}
-                              className="w-20 h-28 object-cover rounded-xl"
-                            />
-                            <div className="flex-1">
-                              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <div className="p-8">
+                      {/* Header avec info du livre */}
+                      <div className="flex items-start gap-6 mb-6">
+                        <img
+                          src={getBookImage(borrowing.book_id)}
+                          alt={borrowing.book_title}
+                          className="w-24 h-32 object-cover rounded-2xl shadow-md"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
                                 {borrowing.book_title}
                               </h3>
-                              <p className="text-gray-600 mb-2">{borrowing.book_author}</p>
-                              <p className="text-sm text-gray-500 mb-3">ISBN: {borrowing.book_isbn}</p>
+                              <p className="text-lg text-gray-600 mb-1">{borrowing.book_author}</p>
+                              <p className="text-sm text-gray-500">ISBN: {borrowing.book_isbn}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
                               {getStatusBadge(borrowing.status)}
+                              {isOverdue && (
+                                <div className="flex items-center bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                                  <AlertTriangle className="w-4 h-4 mr-1" />
+                                  {Math.abs(daysRemaining)} jour(s) de retard
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
-                      </CardHeader>
-                      
-                      <CardContent className="pt-0">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                          <div className="flex items-center text-gray-600">
-                            <Calendar className="w-5 h-5 mr-2" />
-                            <div>
-                              <p className="text-sm font-medium">Emprunté le</p>
-                              <p className="text-sm">{formatDate(borrowing.borrowed_at)}</p>
-                            </div>
+                      </div>
+
+                      {/* Informations dates et statut */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="flex items-center bg-gray-50 rounded-2xl p-4">
+                          <div className="bg-blue-100 rounded-xl p-3 mr-4">
+                            <Calendar className="w-5 h-5 text-blue-600" />
                           </div>
-                          
-                          <div className="flex items-center text-gray-600">
-                            <Clock className="w-5 h-5 mr-2" />
-                            <div>
-                              <p className="text-sm font-medium">À retourner le</p>
-                              <p className={`text-sm ${isOverdue ? 'text-red-600 font-medium' : ''}`}>
-                                {formatDate(borrowing.due_date)}
-                              </p>
-                            </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Date d'emprunt</p>
+                            <p className="text-base font-semibold text-gray-900">
+                              {formatDate(borrowing.borrowed_at)}
+                            </p>
                           </div>
-                          
-                          <div className="flex items-center text-gray-600">
-                            <RotateCcw className="w-5 h-5 mr-2" />
+                        </div>
+                        
+                        <div className="flex items-center bg-gray-50 rounded-2xl p-4">
+                          <div className={`rounded-xl p-3 mr-4 ${isOverdue ? 'bg-red-100' : 'bg-green-100'}`}>
+                            <Clock className={`w-5 h-5 ${isOverdue ? 'text-red-600' : 'text-green-600'}`} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Date de retour</p>
+                            <p className={`text-base font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+                              {formatDate(borrowing.due_date)}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center bg-gray-50 rounded-2xl p-4">
+                          <div className="bg-orange-100 rounded-xl p-3 mr-4">
+                            <RotateCcw className="w-5 h-5 text-orange-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 mb-1">Renouvellements</p>
+                            <p className="text-base font-semibold text-gray-900">
+                              {borrowing.renewal_count}/2
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Notes si présentes */}
+                      {borrowing.notes && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
+                          <div className="flex items-start">
+                            <div className="bg-blue-100 rounded-lg p-2 mr-3 mt-1">
+                              <AlertTriangle className="w-4 h-4 text-blue-600" />
+                            </div>
                             <div>
-                              <p className="text-sm font-medium">Renouvellements</p>
-                              <p className="text-sm">{borrowing.renewal_count}/2</p>
+                              <p className="text-sm font-medium text-blue-800 mb-1">Note</p>
+                              <p className="text-blue-700">{borrowing.notes}</p>
                             </div>
                           </div>
                         </div>
+                      )}
 
-                        {isOverdue && (
-                          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                            <div className="flex items-center">
-                              <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
-                              <p className="text-red-800 font-medium">
-                                Ce livre est en retard de {Math.abs(daysRemaining)} jour(s)
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {borrowing.notes && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                            <p className="text-blue-800 text-sm">{borrowing.notes}</p>
-                          </div>
-                        )}
-
-                        <div className="flex gap-3">
+                      {/* Actions */}
+                      <div className="flex gap-4">
+                        <Button
+                          onClick={() => handleReturnBook(borrowing.id)}
+                          disabled={returningId === borrowing.id}
+                          className="flex-1 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-3 px-6 rounded-2xl font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          {returningId === borrowing.id ? (
+                            <>
+                              <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                              Retour en cours...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-5 h-5 mr-2" />
+                              Retourner le livre
+                            </>
+                          )}
+                        </Button>
+                        
+                        {canRenew && (
                           <Button
-                            onClick={() => handleReturnBook(borrowing.id)}
-                            disabled={returningId === borrowing.id}
-                            className="flex-1 bg-black hover:bg-gray-800"
+                            variant="outline"
+                            onClick={() => handleRenewBorrowing(borrowing.id)}
+                            disabled={renewingId === borrowing.id}
+                            className="flex-1 border-2 border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700 py-3 px-6 rounded-2xl font-medium transition-all duration-200"
                           >
-                            {returningId === borrowing.id ? (
+                            {renewingId === borrowing.id ? (
                               <>
-                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                Retour...
+                                <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                                Renouvellement...
                               </>
                             ) : (
                               <>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Retourner le livre
+                                <RotateCcw className="w-5 h-5 mr-2" />
+                                Renouveler ({2 - borrowing.renewal_count} restant)
                               </>
                             )}
                           </Button>
-                          
-                          {canRenew && (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleRenewBorrowing(borrowing.id)}
-                              disabled={renewingId === borrowing.id}
-                              className="flex-1"
-                            >
-                              {renewingId === borrowing.id ? (
-                                <>
-                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                  Renouvellement...
-                                </>
-                              ) : (
-                                <>
-                                  <RotateCcw className="w-4 h-4 mr-2" />
-                                  Renouveler
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                        )}
+                        
+                        {!canRenew && borrowing.renewal_count >= 2 && (
+                          <div className="flex-1 bg-gray-100 text-gray-500 py-3 px-6 rounded-2xl font-medium flex items-center justify-center">
+                            <RotateCcw className="w-5 h-5 mr-2" />
+                            Limite de renouvellement atteinte
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </motion.div>
                 )
               })}
@@ -522,38 +546,41 @@ const MesEmprunts = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Historique</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Historique</h2>
           
           {returnedBorrowings.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-sm">
-              <CheckCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">Aucun historique</h3>
-              <p className="text-gray-600">Vous n'avez encore retourné aucun livre</p>
+            <div className="text-center py-16 bg-white rounded-3xl shadow-sm border border-gray-100">
+              <CheckCircle className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+              <h3 className="text-2xl font-medium text-gray-900 mb-3">Aucun historique</h3>
+              <p className="text-gray-600 text-lg">Vous n'avez encore retourné aucun livre</p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="space-y-4">
               {returnedBorrowings.map((borrowing) => (
                 <motion.div
                   key={borrowing.id}
                   whileHover={{ y: -2 }}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+                  className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-6">
                       <img
                         src={getBookImage(borrowing.book_id)}
                         alt={borrowing.book_title}
-                        className="w-16 h-20 object-cover rounded-lg"
+                        className="w-16 h-20 object-cover rounded-2xl shadow-sm"
                       />
                       <div>
-                        <h3 className="font-semibold text-gray-900">{borrowing.book_title}</h3>
-                        <p className="text-gray-600">{borrowing.book_author}</p>
-                        <p className="text-sm text-gray-500">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-1">{borrowing.book_title}</h3>
+                        <p className="text-gray-600 mb-2">{borrowing.book_author}</p>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
                           Retourné le {formatDate(borrowing.returned_at!)}
-                        </p>
+                        </div>
                       </div>
                     </div>
-                    {getStatusBadge(borrowing.status)}
+                    <div className="flex items-center gap-3">
+                      {getStatusBadge(borrowing.status)}
+                    </div>
                   </div>
                 </motion.div>
               ))}

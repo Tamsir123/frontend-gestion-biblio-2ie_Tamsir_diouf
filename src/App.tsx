@@ -11,6 +11,7 @@ import Inscription from "./pages/Incrisption";
 import Catalogue from "./pages/Catalogue";
 import BookDetails from "./pages/BookDetails";
 import MesEmprunts from "./pages/MesEmprunts";
+import Profil from "./pages/Profil";
 import NotFound from "./pages/NotFound";
 import FireCatProject from "./pages/FireCatProject";
 import SportRetailProject from "./pages/SportRetailProject";
@@ -41,6 +42,7 @@ const App = () => {
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/livre/:id" element={<BookDetails />} />
             <Route path="/mes-emprunts" element={<MesEmprunts />} />
+            <Route path="/profil" element={<Profil />} />
             <Route path="/projects/firecat" element={<FireCatProject />} />
             <Route path="/projects/sport-retail" element={<SportRetailProject />} />
             <Route path="/projects/workwear" element={<WorkwearProject />} />

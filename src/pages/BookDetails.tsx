@@ -50,12 +50,30 @@ const BookDetails = () => {
   const reviewsPerPage = 3 // Nombre d'avis par page
   const initialReviewsCount = 2 // Nombre d'avis affichés initialement
 
+  // États pour le formulaire d'avis
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [newReview, setNewReview] = useState({
+    rating: 0,
+    comment: ''
+  })
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [userReview, setUserReview] = useState<Review | null>(null)
+
   useEffect(() => {
     if (id) {
       fetchBookDetails(parseInt(id))
       fetchBookReviews(parseInt(id))
     }
   }, [id])
+
+  useEffect(() => {
+    if (reviews.length > 0) {
+      // Vérifier si l'utilisateur a déjà laissé un avis
+      const userId = 1 // Récupérer depuis le contexte d'auth plus tard
+      const existingReview = reviews.find(review => review.user_id === userId)
+      setUserReview(existingReview || null)
+    }
+  }, [reviews])
 
   const fetchBookDetails = async (bookId: number) => {
     try {
@@ -378,6 +396,83 @@ const BookDetails = () => {
     setCurrentReviewPage(page)
   }
 
+  // Fonctions pour gérer les avis
+  const handleSubmitReview = async () => {
+    if (newReview.rating === 0 || newReview.comment.trim() === '') {
+      alert('Veuillez donner une note et écrire un commentaire')
+      return
+    }
+
+    setSubmittingReview(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`http://localhost:5000/api/books/${id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          rating: newReview.rating,
+          comment: newReview.comment
+        })
+      })
+
+      if (response.ok) {
+        alert('Votre avis a été soumis avec succès !')
+        setShowReviewForm(false)
+        setNewReview({ rating: 0, comment: '' })
+        // Recharger les avis
+        fetchBookReviews(parseInt(id!))
+      } else {
+        const errorData = await response.json()
+        alert(errorData.message || 'Erreur lors de la soumission de l\'avis')
+      }
+    } catch (error) {
+      // Simulation pour la démo
+      const newReviewData: Review = {
+        id: Date.now(),
+        user_id: 1,
+        book_id: parseInt(id!),
+        rating: newReview.rating,
+        comment: newReview.comment,
+        is_approved: true,
+        created_at: new Date().toISOString(),
+        user_name: 'Vous'
+      }
+      
+      setReviews(prev => [newReviewData, ...prev])
+      setUserReview(newReviewData)
+      setShowReviewForm(false)
+      setNewReview({ rating: 0, comment: '' })
+      alert('Votre avis a été ajouté avec succès !')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  const StarRating = ({ rating, onRatingChange, interactive = false }: { 
+    rating: number; 
+    onRatingChange?: (rating: number) => void; 
+    interactive?: boolean 
+  }) => {
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-5 h-5 ${
+              star <= rating 
+                ? 'text-yellow-400 fill-current' 
+                : 'text-gray-300'
+            } ${interactive ? 'cursor-pointer hover:text-yellow-300' : ''}`}
+            onClick={() => interactive && onRatingChange && onRatingChange(star)}
+          />
+        ))}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -563,32 +658,132 @@ const BookDetails = () => {
                 </CardContent>
               </Card>
 
+              {/* Formulaire d'avis */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Donner votre avis</h3>
+                    {userReview && (
+                      <Badge variant="outline" className="text-green-600 border-green-600">
+                        Vous avez déjà donné votre avis
+                      </Badge>
+                    )}
+                  </div>
+
+                  {!userReview && !showReviewForm && (
+                    <Button
+                      onClick={() => setShowReviewForm(true)}
+                      className="bg-black hover:bg-gray-800 text-white"
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      Écrire un avis
+                    </Button>
+                  )}
+
+                  {showReviewForm && !userReview && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Votre note
+                        </label>
+                        <StarRating
+                          rating={newReview.rating}
+                          onRatingChange={(rating) => setNewReview(prev => ({ ...prev, rating }))}
+                          interactive={true}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Votre commentaire
+                        </label>
+                        <textarea
+                          value={newReview.comment}
+                          onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+                          className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+                          rows={4}
+                          placeholder="Partagez votre expérience avec ce livre..."
+                        />
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={handleSubmitReview}
+                          disabled={submittingReview || newReview.rating === 0 || !newReview.comment.trim()}
+                          className="bg-black hover:bg-gray-800 text-white"
+                        >
+                          {submittingReview ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Envoi...
+                            </>
+                          ) : (
+                            'Publier l\'avis'
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowReviewForm(false)
+                            setNewReview({ rating: 0, comment: '' })
+                          }}
+                        >
+                          Annuler
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {userReview && (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <div className="flex items-center mb-2">
+                        <StarRating rating={userReview.rating} />
+                        <span className="ml-2 text-sm text-gray-500">Votre avis</span>
+                      </div>
+                      <p className="text-gray-700">{userReview.comment}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Publié le {new Date(userReview.created_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Avis des lecteurs */}
-              {reviews.length > 0 && (
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Avis des lecteurs</h3>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Avis des lecteurs</h3>
+                    {reviews.length > 0 && (
+                      <div className="flex items-center">
+                        <StarRating rating={getAverageRating()} />
+                        <span className="ml-2 text-sm text-gray-500">
+                          {getAverageRating()}/5 ({reviews.length} avis)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {reviews.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <h4 className="text-lg font-medium text-gray-900 mb-2">Aucun avis pour le moment</h4>
+                      <p className="text-gray-500">Soyez le premier à donner votre avis sur ce livre !</p>
+                    </div>
+                  ) : (
                     <div className="space-y-4">
                       {getDisplayedReviews().map((review) => (
-                        <div key={review.id} className="border-l-2 border-gray-200 pl-4">
+                        <div key={review.id} className="border-l-4 border-gray-200 pl-4 py-2">
                           <div className="flex items-center mb-2">
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < review.rating
-                                      ? 'text-yellow-400 fill-current'
-                                      : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="ml-2 text-sm text-gray-500">
+                            <StarRating rating={review.rating} />
+                            <span className="ml-2 text-sm font-medium text-gray-900">
                               {review.user_name || 'Utilisateur anonyme'}
                             </span>
+                            <span className="ml-auto text-xs text-gray-500">
+                              {new Date(review.created_at).toLocaleDateString('fr-FR')}
+                            </span>
                           </div>
-                          <p className="text-gray-700">{review.comment}</p>
+                          <p className="text-gray-700 leading-relaxed">{review.comment}</p>
                         </div>
                       ))}
 
@@ -633,9 +828,9 @@ const BookDetails = () => {
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </motion.div>
         </div>

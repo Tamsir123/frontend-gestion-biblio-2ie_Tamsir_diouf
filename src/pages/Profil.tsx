@@ -1,628 +1,168 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { User, Mail, Phone, Calendar, MapPin, Camera, Edit, Save, X, Eye, EyeOff } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { useToast } from '@/hooks/use-toast'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 interface UserProfile {
   id: number
-  first_name: string
-  last_name: string
+  name: string
   email: string
-  phone?: string
-  address?: string
-  student_id: string
-  department: string
-  year_of_study: number
-  registration_date: string
-  profile_picture?: string
-  bio?: string
+  role: string
 }
 
-interface ProfileStats {
+interface UserStats {
+  active_borrowings: number
   total_borrowed: number
-  current_borrowed: number
-  total_reviews: number
-  favorite_genre: string
+  overdue_books: number
+  reviews_given: number
+  average_rating_given: number | null
 }
 
 const Profil = () => {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [stats, setStats] = useState<ProfileStats | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
+  const [error, setError] = useState('')
+  const [editMode, setEditMode] = useState(false)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [saving, setSaving] = useState(false)
-  const [showPasswordForm, setShowPasswordForm] = useState(false)
-  const { toast } = useToast()
+  const [successMsg, setSuccessMsg] = useState('')
 
-  // États pour l'édition du profil
-  const [editForm, setEditForm] = useState({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    address: '',
-    bio: ''
-  })
-
-  // États pour le changement de mot de passe
-  const [passwordForm, setPasswordForm] = useState({
-    current_password: '',
-    new_password: '',
-    confirm_password: ''
-  })
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  })
+  // Récupérer le token JWT (localStorage ou cookie)
+  const token = localStorage.getItem('token')
 
   useEffect(() => {
-    // Vérifie si l'utilisateur est connecté (token présent)
-    const token = localStorage.getItem('token')
     if (!token) {
-      window.location.href = '/login'
+      setError('Vous devez être connecté pour accéder au profil.')
+      setLoading(false)
       return
     }
     fetchProfile()
-    // fetchStats() supprimé car stats sont dans fetchProfile
-  }, [])
+  }, [token])
 
   const fetchProfile = async () => {
+    setLoading(true)
+    setError('')
     try {
-      setLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/users/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await fetch('http://localhost:5000/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` }
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        setProfile(data.data.user)
-        setStats(data.data.stats)
-        setEditForm({
-          first_name: data.data.user.first_name || '',
-          last_name: data.data.user.last_name || '',
-          phone: data.data.user.phone || '',
-          address: data.data.user.address || '',
-          bio: data.data.user.bio || ''
-        })
-      }
-    } catch (error) {
-      console.error('Erreur:', error)
-      // Données d'exemple si l'API n'est pas disponible
-      const testProfile: UserProfile = {
-        id: 1,
-        first_name: 'Aminata',
-        last_name: 'Traoré',
-        email: 'aminata.traore@2ie-edu.org',
-        phone: '+226 70 12 34 56',
-        address: 'Ouagadougou, Burkina Faso',
-        student_id: '2IE2024001',
-        department: 'Génie Informatique',
-        year_of_study: 3,
-        registration_date: '2022-09-15T00:00:00Z',
-        profile_picture: 'https://images.unsplash.com/photo-1494790108755-2616b612b1e5?w=150&h=150&fit=crop&crop=face',
-        bio: 'Étudiante passionnée par l\'intelligence artificielle et le développement durable. J\'aime découvrir de nouveaux livres sur la technologie et l\'innovation.'
-      }
-      setProfile(testProfile)
-      setEditForm({
-        first_name: testProfile.first_name,
-        last_name: testProfile.last_name,
-        phone: testProfile.phone || '',
-        address: testProfile.address || '',
-        bio: testProfile.bio || ''
-      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.message || 'Erreur')
+      setUser(data.data.user)
+      setStats(data.data.stats)
+      setName(data.data.user.name)
+      setEmail(data.data.user.email)
+    } catch (e: any) {
+      setError(e.message || 'Erreur lors du chargement du profil')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSaveProfile = async () => {
+  const handleSave = async () => {
     setSaving(true)
+    setError('')
+    setSuccessMsg('')
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const res = await fetch('http://localhost:5000/api/auth/profile', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({ name, email })
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        setProfile(data.user)
-        setEditing(false)
-        toast({
-          title: "Profil mis à jour",
-          description: "Vos informations ont été sauvegardées avec succès",
-        })
-      } else {
-        throw new Error('Erreur lors de la mise à jour')
-      }
-    } catch (error) {
-      // Simulation pour la démo
-      if (profile) {
-        setProfile({
-          ...profile,
-          ...editForm
-        })
-        setEditing(false)
-        toast({
-          title: "Profil mis à jour",
-          description: "Vos informations ont été sauvegardées avec succès",
-        })
-      }
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error(data.message || 'Erreur')
+      setSuccessMsg('Profil mis à jour !')
+      setEditMode(false)
+      fetchProfile()
+    } catch (e: any) {
+      setError(e.message || 'Erreur lors de la mise à jour')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleChangePassword = async () => {
-    if (passwordForm.new_password !== passwordForm.confirm_password) {
-      toast({
-        title: "Erreur",
-        description: "Les nouveaux mots de passe ne correspondent pas",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (passwordForm.new_password.length < 6) {
-      toast({
-        title: "Erreur",
-        description: "Le nouveau mot de passe doit contenir au moins 6 caractères",
-        variant: "destructive"
-      })
-      return
-    }
-
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/users/change-password', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          current_password: passwordForm.current_password,
-          new_password: passwordForm.new_password
-        })
-      })
-
-      if (response.ok) {
-        setShowPasswordForm(false)
-        setPasswordForm({ current_password: '', new_password: '', confirm_password: '' })
-        toast({
-          title: "Mot de passe modifié",
-          description: "Votre mot de passe a été mis à jour avec succès",
-        })
-      } else {
-        throw new Error('Erreur lors du changement de mot de passe')
-      }
-    } catch (error) {
-      // Simulation pour la démo
-      setShowPasswordForm(false)
-      setPasswordForm({ current_password: '', new_password: '', confirm_password: '' })
-      toast({
-        title: "Mot de passe modifié",
-        description: "Votre mot de passe a été mis à jour avec succès",
-      })
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Navbar />
-        <div className="flex items-center justify-center py-20">
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-black mx-auto mb-8"></div>
-            <p className="text-xl text-gray-600">Chargement de votre profil...</p>
-          </motion.div>
+            <p className="text-xl text-gray-600">Chargement du profil...</p>
+          </div>
         </div>
         <Footer />
       </div>
     )
   }
 
-  if (!profile) return null
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navbar />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center text-red-600">{error}</div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
-      
-      {/* Hero Section */}
-      <motion.div 
-        className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-black overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=400&fit=crop" 
-            alt="Profil utilisateur" 
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40"></div>
-        </div>
-        
-        <div className="relative container mx-auto px-4 py-16">
-          <motion.div 
-            className="flex items-center space-x-6"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-          >
-            <div className="relative">
-              <img
-                src={profile.profile_picture || 'https://images.unsplash.com/photo-1494790108755-2616b612b1e5?w=150&h=150&fit=crop&crop=face'}
-                alt="Photo de profil"
-                className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
-              />
-              <button className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors">
-                <Camera className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-            <div className="text-white">
-              <h1 className="text-4xl font-bold mb-2">
-                {profile.first_name} {profile.last_name}
-              </h1>
-              <p className="text-xl text-gray-200 mb-2">{profile.department}</p>
-              <div className="flex items-center space-x-4 text-gray-300">
-                <span>ID: {profile.student_id}</span>
-                <span>•</span>
-                <span>Année {profile.year_of_study}</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Contenu principal */}
-      <motion.div 
-        className="container mx-auto px-4 py-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Colonne principale */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Informations personnelles */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <User className="w-5 h-5 mr-2" />
-                  Informations personnelles
-                </CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => editing ? setEditing(false) : setEditing(true)}
-                >
-                  {editing ? (
-                    <>
-                      <X className="w-4 h-4 mr-1" />
-                      Annuler
-                    </>
-                  ) : (
-                    <>
-                      <Edit className="w-4 h-4 mr-1" />
-                      Modifier
-                    </>
-                  )}
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {editing ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Prénom
-                        </label>
-                        <Input
-                          value={editForm.first_name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, first_name: e.target.value }))}
-                          placeholder="Votre prénom"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Nom
-                        </label>
-                        <Input
-                          value={editForm.last_name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, last_name: e.target.value }))}
-                          placeholder="Votre nom"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Téléphone
-                      </label>
-                      <Input
-                        value={editForm.phone}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="Votre numéro de téléphone"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Adresse
-                      </label>
-                      <Input
-                        value={editForm.address}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
-                        placeholder="Votre adresse"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Bio
-                      </label>
-                      <textarea
-                        value={editForm.bio}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        rows={3}
-                        placeholder="Parlez-nous de vous..."
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSaveProfile}
-                      disabled={saving}
-                      className="bg-black hover:bg-gray-800 text-white"
-                    >
-                      {saving ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Sauvegarde...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Sauvegarder
-                        </>
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center">
-                        <Mail className="w-5 h-5 text-gray-400 mr-3" />
-                        <div>
-                          <p className="text-sm text-gray-500">Email</p>
-                          <p className="font-medium">{profile.email}</p>
-                        </div>
-                      </div>
-                      {profile.phone && (
-                        <div className="flex items-center">
-                          <Phone className="w-5 h-5 text-gray-400 mr-3" />
-                          <div>
-                            <p className="text-sm text-gray-500">Téléphone</p>
-                            <p className="font-medium">{profile.phone}</p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-center">
-                        <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                        <div>
-                          <p className="text-sm text-gray-500">Inscrit depuis</p>
-                          <p className="font-medium">{formatDate(profile.registration_date)}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      {profile.address && (
-                        <div className="flex items-center">
-                          <MapPin className="w-5 h-5 text-gray-400 mr-3" />
-                          <div>
-                            <p className="text-sm text-gray-500">Adresse</p>
-                            <p className="font-medium">{profile.address}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {profile.bio && !editing && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">À propos</h4>
-                    <p className="text-gray-700">{profile.bio}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Sécurité */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Sécurité</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!showPasswordForm ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowPasswordForm(true)}
-                  >
-                    Changer le mot de passe
-                  </Button>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Mot de passe actuel
-                      </label>
-                      <div className="relative">
-                        <Input
-                          type={showPasswords.current ? "text" : "password"}
-                          value={passwordForm.current_password}
-                          onChange={(e) => setPasswordForm(prev => ({ ...prev, current_password: e.target.value }))}
-                          placeholder="Entrez votre mot de passe actuel"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3"
-                          onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-                        >
-                          {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nouveau mot de passe
-                      </label>
-                      <div className="relative">
-                        <Input
-                          type={showPasswords.new ? "text" : "password"}
-                          value={passwordForm.new_password}
-                          onChange={(e) => setPasswordForm(prev => ({ ...prev, new_password: e.target.value }))}
-                          placeholder="Entrez votre nouveau mot de passe"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3"
-                          onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                        >
-                          {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Confirmer le nouveau mot de passe
-                      </label>
-                      <div className="relative">
-                        <Input
-                          type={showPasswords.confirm ? "text" : "password"}
-                          value={passwordForm.confirm_password}
-                          onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
-                          placeholder="Confirmez votre nouveau mot de passe"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3"
-                          onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                        >
-                          {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={handleChangePassword}
-                        className="bg-black hover:bg-gray-800 text-white"
-                      >
-                        Confirmer
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowPasswordForm(false)
-                          setPasswordForm({ current_password: '', new_password: '', confirm_password: '' })
-                        }}
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar avec statistiques */}
-          <div className="space-y-6">
-            {/* Statistiques */}
-            {stats && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mes statistiques</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700 font-medium">Livres empruntés</span>
-                    <Badge variant="outline" className="text-gray-600 border-gray-600">
-                      {stats.total_borrowed}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <span className="text-green-700 font-medium">Emprunts actuels</span>
-                    <Badge variant="outline" className="text-green-600 border-green-600">
-                      {stats.current_borrowed}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                    <span className="text-orange-700 font-medium">Avis donnés</span>
-                    <Badge variant="outline" className="text-orange-600 border-orange-600">
-                      {stats.total_reviews}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700 font-medium">Genre préféré</span>
-                    <Badge variant="outline" className="text-gray-600 border-gray-600">
-                      {stats.favorite_genre}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="container mx-auto px-4 py-16 max-w-2xl">
+        <h1 className="text-3xl font-light mb-8">Mon profil</h1>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+            {editMode ? (
+              <Input value={name} onChange={e => setName(e.target.value)} />
+            ) : (
+              <div className="text-lg">{user?.name}</div>
             )}
-
-            {/* Informations académiques */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informations académiques</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-500">Numéro étudiant</p>
-                  <p className="font-medium font-mono">{profile.student_id}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Département</p>
-                  <p className="font-medium">{profile.department}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Année d'étude</p>
-                  <p className="font-medium">Année {profile.year_of_study}</p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            {editMode ? (
+              <Input value={email} onChange={e => setEmail(e.target.value)} />
+            ) : (
+              <div className="text-lg">{user?.email}</div>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+            <div className="text-lg">{user?.role}</div>
+          </div>
+          {editMode ? (
+            <div className="flex gap-2 mt-4">
+              <Button onClick={handleSave} disabled={saving}>{saving ? 'Enregistrement...' : 'Enregistrer'}</Button>
+              <Button variant="outline" onClick={() => setEditMode(false)} disabled={saving}>Annuler</Button>
+            </div>
+          ) : (
+            <Button className="mt-4" onClick={() => setEditMode(true)}>Modifier</Button>
+          )}
+          {successMsg && <div className="text-green-600 mt-2">{successMsg}</div>}
         </div>
-      </motion.div>
-
+        {stats && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <h2 className="text-xl font-light mb-4">Statistiques</h2>
+            <ul className="text-gray-700 space-y-2">
+              <li>Emprunts actifs : <span className="font-medium">{stats.active_borrowings}</span></li>
+              <li>Total empruntés : <span className="font-medium">{stats.total_borrowed}</span></li>
+              <li>Retards : <span className="font-medium">{stats.overdue_books}</span></li>
+              <li>Avis donnés : <span className="font-medium">{stats.reviews_given}</span></li>
+              <li>Note moyenne donnée : <span className="font-medium">{stats.average_rating_given !== null ? stats.average_rating_given.toFixed(2) : 'N/A'}</span></li>
+            </ul>
+          </div>
+        )}
+      </div>
       <Footer />
     </div>
   )

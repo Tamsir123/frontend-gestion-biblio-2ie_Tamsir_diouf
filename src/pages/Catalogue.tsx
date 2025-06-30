@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { Dialog } from '@/components/ui/dialog'
 
 interface Book {
   id: number
@@ -27,6 +28,7 @@ const Catalogue = () => {
   const [books, setBooks] = useState<Book[]>([])
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [selectedGenre, setSelectedGenre] = useState('all')
   const [selectedAuthor, setSelectedAuthor] = useState('all')
   const [sortBy, setSortBy] = useState('title')
@@ -34,6 +36,14 @@ const Catalogue = () => {
   const [genres, setGenres] = useState<string[]>([])
   const [authors, setAuthors] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
+  const [showBorrowModal, setShowBorrowModal] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+  const [borrowLoading, setBorrowLoading] = useState(false)
+  const [borrowError, setBorrowError] = useState('')
+  const [borrowSuccess, setBorrowSuccess] = useState('')
+  const [borrowStartDate, setBorrowStartDate] = useState<string>('')
+  const [borrowEndDate, setBorrowEndDate] = useState<string>('')
+  const [borrowComment, setBorrowComment] = useState<string>('')
 
   // Animation variants
   const containerVariants = {
@@ -177,6 +187,7 @@ const Catalogue = () => {
   }, [showFilters])
 
   const resetFilters = () => {
+    setSearchInput('')
     setSearchTerm('')
     setSelectedGenre('all')
     setSelectedAuthor('all')
@@ -280,10 +291,20 @@ const Catalogue = () => {
               <Input
                 type="text"
                 placeholder="Rechercher par titre, auteur ou ISBN..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') setSearchTerm(searchInput)
+                }}
                 className="pl-12 pr-4 py-4 text-lg border-2 border-gray-200 focus:border-black rounded-lg bg-gray-50 focus:bg-white transition-all"
               />
+              <Button
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 text-sm"
+                onClick={() => setSearchTerm(searchInput)}
+                variant="outline"
+              >
+                Rechercher
+              </Button>
             </div>
 
             {/* Barre de filtres */}
@@ -477,6 +498,23 @@ const Catalogue = () => {
                         size="sm"
                         className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg text-xs"
                         disabled={book.available_quantity === 0}
+                        onClick={() => {
+                          if (book.available_quantity > 0) {
+                            setSelectedBook(book)
+                            setShowBorrowModal(true)
+                            setBorrowError('')
+                            setBorrowSuccess('')
+                            // Init dates
+                            const today = new Date()
+                            const todayStr = today.toISOString().split('T')[0]
+                            setBorrowStartDate(todayStr)
+                            // Par défaut, retour = aujourd'hui + 7 jours
+                            const end = new Date(today)
+                            end.setDate(end.getDate() + 7)
+                            setBorrowEndDate(end.toISOString().split('T')[0])
+                            setBorrowComment('')
+                          }
+                        }}
                       >
                         Emprunter
                       </Button>
@@ -490,6 +528,113 @@ const Catalogue = () => {
       </div>
       
       <Footer />
+
+      {/* Modale d'emprunt */}
+      <Dialog open={showBorrowModal} onOpenChange={setShowBorrowModal}>
+        {selectedBook && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
+              <button className="absolute top-2 right-2 text-gray-400 hover:text-black" onClick={() => {
+                setShowBorrowModal(false)
+                setSelectedBook(null)
+                setBorrowError('')
+                setBorrowSuccess('')
+                setBorrowStartDate('')
+                setBorrowEndDate('')
+                setBorrowComment('')
+              }}>
+                <X className="w-5 h-5" />
+              </button>
+              <h2 className="text-2xl font-semibold mb-4">Emprunter ce livre</h2>
+              <div className="mb-4">
+                <div className="font-medium text-lg mb-1">{selectedBook.title}</div>
+                <div className="text-gray-600 mb-1">Auteur : {selectedBook.author}</div>
+                <div className="text-gray-500 text-sm">Genre : {selectedBook.genre}</div>
+              </div>
+              {/* Ici, on peut ajouter d'autres champs si besoin (date de retour, etc.) */}
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                <input
+                  type="date"
+                  className="border rounded px-2 py-1 w-full"
+                  value={borrowStartDate}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={e => setBorrowStartDate(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date de retour souhaitée <span className="text-red-500">*</span></label>
+                <input
+                  type="date"
+                  className="border rounded px-2 py-1 w-full"
+                  value={borrowEndDate}
+                  min={borrowStartDate || new Date().toISOString().split('T')[0]}
+                  onChange={e => setBorrowEndDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Commentaire (optionnel)</label>
+                <textarea
+                  className="border rounded px-2 py-1 w-full"
+                  value={borrowComment}
+                  onChange={e => setBorrowComment(e.target.value)}
+                  rows={2}
+                  placeholder="Motif, précision, etc."
+                />
+              </div>
+              {borrowError && <div className="text-red-600 mb-2">{borrowError}</div>}
+              {borrowSuccess && <div className="text-green-600 mb-2">{borrowSuccess}</div>}
+              <Button
+                className="w-full bg-black text-white mt-2"
+                disabled={borrowLoading}
+                onClick={async () => {
+                  setBorrowLoading(true)
+                  setBorrowError('')
+                  setBorrowSuccess('')
+                  if (!borrowEndDate) {
+                    setBorrowError('Veuillez choisir une date de retour.')
+                    setBorrowLoading(false)
+                    return
+                  }
+                  try {
+                    const token = localStorage.getItem('token')
+                    if (!token) {
+                      setBorrowError('Vous devez être connecté pour emprunter.')
+                      setBorrowLoading(false)
+                      return
+                    }
+                    const res = await fetch('http://localhost:5000/api/borrowings', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                      },
+                      body: JSON.stringify({
+                        bookId: selectedBook.id,
+                        startDate: borrowStartDate,
+                        endDate: borrowEndDate,
+                        comment: borrowComment
+                      })
+                    })
+                    const data = await res.json()
+                    if (!res.ok || !data.success) throw new Error(data.message || 'Erreur lors de l\'emprunt')
+                    setBorrowSuccess('Emprunt enregistré !')
+                    setTimeout(() => setShowBorrowModal(false), 1200)
+                    fetchBooks() // refresh catalogue
+                  } catch (e) {
+                    setBorrowError(e instanceof Error ? e.message : 'Erreur lors de l\'emprunt')
+                  } finally {
+                    setBorrowLoading(false)
+                  }
+                }}
+              >
+                {borrowLoading ? 'Emprunt en cours...' : 'Confirmer l\'emprunt'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   )
 }

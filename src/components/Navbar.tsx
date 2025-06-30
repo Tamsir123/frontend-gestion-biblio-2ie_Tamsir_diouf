@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn } from "lucide-react";
+import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -228,16 +227,6 @@ const Navbar = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => navigate('/panier')}
-                className={cn("relative", isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
-              </Button>
-
-              <Button 
-                variant="ghost" 
-                size="sm" 
                 onClick={() => navigate('/mes-emprunts')}
                 className={cn("flex items-center", isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
               >
@@ -245,7 +234,6 @@ const Navbar = () => {
                 Mes Emprunts
               </Button>
 
-              
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -255,14 +243,6 @@ const Navbar = () => {
                 <User className="w-4 h-4 mr-2" />
                 Mon Compte
               </Button>
-              
-              {/* <Button 
-                size="sm" 
-                className={cn("ml-2", isScrolled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white text-blue-600 hover:bg-gray-100")}
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Connexion
-              </Button> */}
             </div>
           </div>
           
@@ -434,19 +414,6 @@ const Navbar = () => {
           
           {/* User Actions */}
           <div className="space-y-2">
-            <button 
-              onClick={() => {
-                navigate('/panier');
-                setIsMenuOpen(false);
-              }}
-              className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
-            >
-              <ShoppingCart className="w-4 h-4 mr-3" />
-              Panier (3)
-            </button>
-            
-
-            
             <button 
               onClick={() => {
                 navigate('/profil');

@@ -81,59 +81,13 @@ const BookDetails = () => {
       const response = await fetch(`http://localhost:5000/api/books/${bookId}`)
       if (response.ok) {
         const data = await response.json()
-        setBook(data.book || data)
+        setBook(data.data || data)
       } else {
         setError('Livre non trouvé')
       }
     } catch (error) {
       console.error('Erreur:', error)
-      // Données d'exemple si l'API n'est pas disponible
-      const exampleBooks: { [key: number]: Book } = {
-        1: {
-          id: 1,
-          title: "Introduction à l'Intelligence Artificielle",
-          author: "Dr. Marie Dubois",
-          isbn: "978-2-123456-78-9",
-          genre: "Technologie",
-          description: "Une introduction complète aux concepts fondamentaux de l'intelligence artificielle moderne. Ce livre couvre les algorithmes d'apprentissage automatique, les réseaux de neurones, le traitement du langage naturel et les applications pratiques de l'IA dans différents domaines. Destiné aux étudiants en informatique et ingénierie, il propose une approche progressive avec de nombreux exemples pratiques et exercices corrigés.",
-          total_quantity: 5,
-          available_quantity: 3,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        2: {
-          id: 2,
-          title: "Histoire de l'Afrique Contemporaine",
-          author: "Prof. Amadou Diallo",
-          isbn: "978-2-987654-32-1",
-          genre: "Histoire",
-          description: "Un regard approfondi sur l'évolution politique, sociale et culturelle de l'Afrique au XXe et XXIe siècles. L'ouvrage analyse les mouvements d'indépendance, les défis du développement post-colonial, les transformations sociales et l'émergence de nouvelles dynamiques continentales. Une référence incontournable pour comprendre l'Afrique contemporaine.",
-          total_quantity: 3,
-          available_quantity: 0,
-          publication_year: 2022,
-          created_at: "2024-01-01"
-        },
-        3: {
-          id: 3,
-          title: "Mathématiques Appliquées à l'Ingénierie",
-          author: "Prof. Jean-Claude Koné",
-          isbn: "978-2-456789-12-3",
-          genre: "Sciences",
-          description: "Manuel complet de mathématiques pour les étudiants en ingénierie. Couvre le calcul différentiel et intégral, l'algèbre linéaire, les équations différentielles, les statistiques et probabilités. Chaque chapitre inclut des applications concrètes en ingénierie avec des problèmes résolus et des exercices pratiques.",
-          total_quantity: 8,
-          available_quantity: 5,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        }
-      }
-      
-      const exampleBook = exampleBooks[bookId]
-      if (exampleBook) {
-        setBook(exampleBook)
-        setError('')
-      } else {
-        setError('Livre non trouvé dans les exemples')
-      }
+      setError('Erreur lors de la récupération du livre')
     } finally {
       setLoading(false)
     }
@@ -148,137 +102,7 @@ const BookDetails = () => {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des avis:', error)
-      // Données d'exemple d'avis si l'API n'est pas disponible
-      const exampleReviews: { [key: number]: Review[] } = {
-        1: [
-          {
-            id: 1,
-            user_id: 1,
-            book_id: 1,
-            rating: 5,
-            comment: "Excellent livre pour débuter en IA ! Les explications sont claires et les exemples pratiques très utiles.",
-            is_approved: true,
-            created_at: "2024-01-15",
-            user_name: "Ahmed Traoré"
-          },
-          {
-            id: 2,
-            user_id: 2,
-            book_id: 1,
-            rating: 4,
-            comment: "Très bon contenu, mais j'aurais aimé plus d'exercices pratiques sur les réseaux de neurones.",
-            is_approved: true,
-            created_at: "2024-01-20",
-            user_name: "Fatou Diallo"
-          },
-          {
-            id: 3,
-            user_id: 3,
-            book_id: 1,
-            rating: 5,
-            comment: "Ce livre m'a permis de comprendre enfin les concepts d'apprentissage automatique. Très bien structuré !",
-            is_approved: true,
-            created_at: "2024-01-22",
-            user_name: "Kouamé N'Guessan"
-          },
-          {
-            id: 4,
-            user_id: 4,
-            book_id: 1,
-            rating: 4,
-            comment: "Bon livre d'introduction, mais certains chapitres mériteraient d'être approfondis.",
-            is_approved: true,
-            created_at: "2024-01-25",
-            user_name: "Aminata Ba"
-          },
-          {
-            id: 5,
-            user_id: 5,
-            book_id: 1,
-            rating: 5,
-            comment: "Parfait pour les étudiants en informatique. Les algorithmes sont bien expliqués avec des exemples concrets.",
-            is_approved: true,
-            created_at: "2024-01-28",
-            user_name: "Mamadou Konaté"
-          },
-          {
-            id: 6,
-            user_id: 6,
-            book_id: 1,
-            rating: 3,
-            comment: "Contenu intéressant mais parfois trop technique pour un débutant. Il faut avoir quelques bases en programmation.",
-            is_approved: true,
-            created_at: "2024-02-01",
-            user_name: "Salimata Ouattara"
-          },
-          {
-            id: 7,
-            user_id: 7,
-            book_id: 1,
-            rating: 5,
-            comment: "Excellent investissement ! Ce livre couvre tous les aspects essentiels de l'IA moderne.",
-            is_approved: true,
-            created_at: "2024-02-05",
-            user_name: "Ibrahim Sow"
-          },
-          {
-            id: 8,
-            user_id: 8,
-            book_id: 1,
-            rating: 4,
-            comment: "Très utile pour mon projet de fin d'études. Les références bibliographiques sont excellentes.",
-            is_approved: true,
-            created_at: "2024-02-10",
-            user_name: "Mariam Diabaté"
-          }
-        ],
-        2: [
-          {
-            id: 9,
-            user_id: 9,
-            book_id: 2,
-            rating: 5,
-            comment: "Une analyse remarquable de l'Afrique contemporaine. Indispensable pour comprendre notre histoire récente.",
-            is_approved: true,
-            created_at: "2024-01-10",
-            user_name: "Moussa Sawadogo"
-          },
-          {
-            id: 10,
-            user_id: 10,
-            book_id: 2,
-            rating: 4,
-            comment: "Très documenté et bien écrit. L'auteur maîtrise parfaitement son sujet.",
-            is_approved: true,
-            created_at: "2024-01-18",
-            user_name: "Kadiatou Camara"
-          }
-        ],
-        3: [
-          {
-            id: 11,
-            user_id: 11,
-            book_id: 3,
-            rating: 4,
-            comment: "Très complet pour les mathématiques appliquées. Les exercices sont bien graduées.",
-            is_approved: true,
-            created_at: "2024-01-25",
-            user_name: "Aïcha Ouédraogo"
-          },
-          {
-            id: 12,
-            user_id: 12,
-            book_id: 3,
-            rating: 5,
-            comment: "Manuel de référence excellent ! Indispensable pour tous les étudiants ingénieurs.",
-            is_approved: true,
-            created_at: "2024-02-02",
-            user_name: "Seydou Cissé"
-          }
-        ]
-      }
-      
-      setReviews(exampleReviews[bookId] || [])
+      // En cas d'erreur API, on ne met plus d'avis d'exemple
     }
   }
 

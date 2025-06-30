@@ -59,6 +59,9 @@ const Catalogue = () => {
   // Récupération des livres depuis l'API
   useEffect(() => {
     fetchBooks()
+  }, [searchTerm, selectedGenre, selectedAuthor, sortBy])
+
+  useEffect(() => {
     fetchGenres()
     fetchAuthors()
   }, [])
@@ -66,165 +69,27 @@ const Catalogue = () => {
   const fetchBooks = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:5000/api/books')
+      let url = 'http://localhost:5000/api/books?'
+      if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`
+      if (selectedGenre !== 'all') url += `genre=${encodeURIComponent(selectedGenre)}&`
+      if (selectedAuthor !== 'all') url += `author=${encodeURIComponent(selectedAuthor)}&`
+      // Optionnel : ajouter le tri côté backend si supporté
+      // if (sortBy) url += `sortBy=${encodeURIComponent(sortBy)}&`
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
-        setBooks(data.books || data)
-        setFilteredBooks(data.books || data)
+        const booksArray = Array.isArray(data?.data?.books) ? data.data.books : []
+        setBooks(booksArray)
+        setFilteredBooks(booksArray)
       } else {
+        setBooks([])
+        setFilteredBooks([])
         console.error('Erreur lors de la récupération des livres')
       }
     } catch (error) {
+      setBooks([])
+      setFilteredBooks([])
       console.error('Erreur:', error)
-      // Données de test si l'API n'est pas disponible
-      const testBooks = [
-        {
-          id: 1,
-          title: "Introduction à l'Intelligence Artificielle",
-          author: "Dr. Marie Dubois",
-          isbn: "978-2-123456-78-9",
-          genre: "Technologie",
-          description: "Une introduction complète aux concepts fondamentaux de l'IA moderne, incluant l'apprentissage automatique et les réseaux de neurones.",
-          total_quantity: 5,
-          available_quantity: 3,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 2,
-          title: "Histoire de l'Afrique Contemporaine",
-          author: "Prof. Amadou Diallo",
-          isbn: "978-2-987654-32-1",
-          genre: "Histoire",
-          description: "Un regard approfondi sur l'évolution politique, sociale et culturelle de l'Afrique au XXe et XXIe siècles.",
-          total_quantity: 3,
-          available_quantity: 0,
-          publication_year: 2022,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 3,
-          title: "Mathématiques Appliquées à l'Ingénierie",
-          author: "Prof. Jean-Claude Koné",
-          isbn: "978-2-456789-12-3",
-          genre: "Sciences",
-          description: "Manuel complet de mathématiques pour les étudiants en ingénierie : calcul différentiel, algèbre linéaire et statistiques.",
-          total_quantity: 8,
-          available_quantity: 5,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 4,
-          title: "Littérature Africaine Contemporaine",
-          author: "Dr. Fatima Traoré",
-          isbn: "978-2-789012-34-5",
-          genre: "Littérature",
-          description: "Une exploration de la richesse littéraire africaine moderne à travers les œuvres d'auteurs emblématiques.",
-          total_quantity: 4,
-          available_quantity: 2,
-          publication_year: 2022,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 5,
-          title: "Génie Civil et Construction Durable",
-          author: "Ing. Pierre Ouédraogo",
-          isbn: "978-2-345678-90-1",
-          genre: "Ingénierie",
-          description: "Principes de construction durable et techniques modernes du génie civil adaptées au contexte africain.",
-          total_quantity: 6,
-          available_quantity: 4,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 6,
-          title: "Économie du Développement en Afrique",
-          author: "Dr. Awa Ndiaye",
-          isbn: "978-2-678901-23-4",
-          genre: "Économie",
-          description: "Analyse des défis économiques contemporains et des stratégies de développement pour l'Afrique.",
-          total_quantity: 5,
-          available_quantity: 3,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 7,
-          title: "Programmation Python pour Débutants",
-          author: "Dr. Sarah Johnson",
-          isbn: "978-2-567890-12-3",
-          genre: "Informatique",
-          description: "Guide pratique pour apprendre Python de A à Z avec des projets concrets et des exercices progressifs.",
-          total_quantity: 10,
-          available_quantity: 8,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 8,
-          title: "Énergies Renouvelables et Développement",
-          author: "Prof. Michel Sawadogo",
-          isbn: "978-2-456789-01-2",
-          genre: "Environnement",
-          description: "Solutions énergétiques durables pour l'Afrique : solaire, éolien et biomasse.",
-          total_quantity: 4,
-          available_quantity: 1,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 9,
-          title: "Chimie Organique Fondamentale",
-          author: "Dr. Robert Kaboré",
-          isbn: "978-2-789012-45-6",
-          genre: "Sciences",
-          description: "Cours complet de chimie organique avec exercices corrigés et travaux pratiques.",
-          total_quantity: 7,
-          available_quantity: 5,
-          publication_year: 2022,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 10,
-          title: "Sociologie Urbaine Africaine",
-          author: "Prof. Aminata Sow",
-          isbn: "978-2-890123-56-7",
-          genre: "Sociologie",
-          description: "Étude des transformations urbaines en Afrique et de leurs impacts socioculturels.",
-          total_quantity: 3,
-          available_quantity: 2,
-          publication_year: 2023,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 11,
-          title: "Mécanique des Fluides Appliquée",
-          author: "Ing. David Compaoré",
-          isbn: "978-2-901234-67-8",
-          genre: "Ingénierie",
-          description: "Principes fondamentaux de la mécanique des fluides avec applications pratiques en ingénierie.",
-          total_quantity: 5,
-          available_quantity: 3,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        },
-        {
-          id: 12,
-          title: "Marketing Digital en Afrique",
-          author: "Dr. Grace Mensah",
-          isbn: "978-2-012345-78-9",
-          genre: "Marketing",
-          description: "Stratégies de marketing numérique adaptées aux marchés africains et aux nouvelles technologies.",
-          total_quantity: 6,
-          available_quantity: 4,
-          publication_year: 2024,
-          created_at: "2024-01-01"
-        }
-      ]
-      setBooks(testBooks)
-      setFilteredBooks(testBooks)
     } finally {
       setLoading(false)
     }
@@ -235,10 +100,34 @@ const Catalogue = () => {
       const response = await fetch('http://localhost:5000/api/books/genres')
       if (response.ok) {
         const data = await response.json()
-        setGenres(data.genres || [])
+        let genresArr = []
+        if (data?.data?.genres && Array.isArray(data.data.genres)) {
+          genresArr = data.data.genres
+        } else if (data?.genres && Array.isArray(data.genres)) {
+          genresArr = data.genres
+        } else if (Array.isArray(data?.data)) {
+          genresArr = data.data
+        } else if (Array.isArray(data)) {
+          genresArr = data
+        }
+        // Sanitize: extract string value, deduplicate, filter empty
+        const genreStrings = genresArr
+          .map((g: unknown) => {
+            if (typeof g === 'string') return g
+            if (isGenreObj(g)) return g.genre
+            if (isNameObj(g)) return g.name
+            return ''
+          })
+          .map((g: string) => g.trim())
+          .filter((g: string) => !!g)
+        const uniqueGenres = Array.from(new Set(genreStrings))
+        setGenres(uniqueGenres)
       }
     } catch (error) {
-      setGenres(['Technologie', 'Histoire', 'Sciences', 'Littérature', 'Ingénierie', 'Économie', 'Informatique', 'Environnement', 'Sociologie', 'Marketing'])
+      setGenres([
+        'Technologie', 'Histoire', 'Sciences', 'Littérature', 'Ingénierie',
+        'Économie', 'Informatique', 'Environnement', 'Sociologie', 'Marketing'
+      ])
     }
   }
 
@@ -247,50 +136,45 @@ const Catalogue = () => {
       const response = await fetch('http://localhost:5000/api/books/popular-authors')
       if (response.ok) {
         const data = await response.json()
-        setAuthors(data.authors || [])
+        let authorsArr = []
+        if (data?.data?.authors && Array.isArray(data.data.authors)) {
+          authorsArr = data.data.authors
+        } else if (data?.authors && Array.isArray(data.authors)) {
+          authorsArr = data.authors
+        } else if (Array.isArray(data?.data)) {
+          authorsArr = data.data
+        } else if (Array.isArray(data)) {
+          authorsArr = data
+        }
+        // Sanitize: extract string value, deduplicate, filter empty
+        const authorStrings = authorsArr
+          .map((a: unknown) => {
+            if (typeof a === 'string') return a
+            if (isAuthorObj(a)) return a.author
+            if (isNameObj(a)) return a.name
+            return ''
+          })
+          .map((a: string) => a.trim())
+          .filter((a: string) => !!a)
+        const uniqueAuthors = Array.from(new Set(authorStrings))
+        setAuthors(uniqueAuthors)
       }
     } catch (error) {
-      setAuthors(['Dr. Marie Dubois', 'Prof. Amadou Diallo', 'Prof. Jean-Claude Koné', 'Dr. Fatima Traoré', 'Ing. Pierre Ouédraogo', 'Dr. Awa Ndiaye', 'Dr. Sarah Johnson', 'Prof. Michel Sawadogo'])
+      setAuthors([
+        'Dr. Marie Dubois', 'Prof. Amadou Diallo', 'Prof. Jean-Claude Koné',
+        'Dr. Fatima Traoré', 'Ing. Pierre Ouédraogo', 'Dr. Awa Ndiaye',
+        'Dr. Sarah Johnson', 'Prof. Michel Sawadogo'
+      ])
     }
   }
 
-  // Recherche et filtrage
+  // Rafraîchir genres/auteurs à chaque ouverture du panneau de filtres
   useEffect(() => {
-    let filtered = books
-
-    if (searchTerm) {
-      filtered = filtered.filter(book =>
-        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.isbn.includes(searchTerm)
-      )
+    if (showFilters) {
+      fetchGenres()
+      fetchAuthors()
     }
-
-    if (selectedGenre !== 'all') {
-      filtered = filtered.filter(book => book.genre === selectedGenre)
-    }
-
-    if (selectedAuthor !== 'all') {
-      filtered = filtered.filter(book => book.author === selectedAuthor)
-    }
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'title':
-          return a.title.localeCompare(b.title)
-        case 'author':
-          return a.author.localeCompare(b.author)
-        case 'year':
-          return b.publication_year - a.publication_year
-        case 'availability':
-          return b.available_quantity - a.available_quantity
-        default:
-          return 0
-      }
-    })
-
-    setFilteredBooks(filtered)
-  }, [books, searchTerm, selectedGenre, selectedAuthor, sortBy])
+  }, [showFilters])
 
   const resetFilters = () => {
     setSearchTerm('')
@@ -428,7 +312,7 @@ const Catalogue = () => {
               </div>
 
               <div className="text-sm text-gray-600">
-                <span className="font-medium">{filteredBooks.length}</span> livre(s) trouvé(s)
+                <span className="font-medium">{Array.isArray(filteredBooks) ? filteredBooks.length : 0}</span> livre(s) trouvé(s)
               </div>
             </div>
 
@@ -502,7 +386,7 @@ const Catalogue = () => {
         </motion.div>
 
         {/* Grille des livres */}
-        {filteredBooks.length === 0 ? (
+        {Array.isArray(filteredBooks) && filteredBooks.length === 0 ? (
           <motion.div 
             className="text-center py-20"
             initial={{ opacity: 0 }}
@@ -513,99 +397,112 @@ const Catalogue = () => {
             <p className="text-gray-600">Essayez de modifier vos critères de recherche</p>
           </motion.div>
         ) : (
-          <motion.div 
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {filteredBooks.map((book) => (
-              <motion.div
-                key={book.id}
-                variants={itemVariants}
-                className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl"
-              >
-                {/* Image - Format portrait comme un vrai livre */}
-                <div className="relative h-72 overflow-hidden rounded-t-xl">
-                  <img
-                    src={getBookImage(book)}
-                    alt={book.title}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  
-                  {/* Badge de disponibilité seulement */}
-                  <div className="absolute top-3 right-3">
-                    <Badge 
-                      variant={book.available_quantity > 0 ? "default" : "destructive"}
-                      className={`${book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"} rounded-full px-2 py-1 text-xs`}
-                    >
-                      {book.available_quantity > 0 ? "●" : "●"}
-                    </Badge>
-                  </div>
-                  
-                  {/* Genre en bas de l'image */}
-                  <div className="absolute bottom-3 left-3">
-                    <Badge 
-                      variant="secondary" 
-                      className="bg-black/80 text-white font-medium rounded-full px-2 py-1 text-xs"
-                    >
-                      {book.genre}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Contenu - Plus compact */}
-                <div className="p-4">
-                  <h3 className="text-base font-medium text-gray-900 mb-2 group-hover:text-black transition-colors line-clamp-2">
-                    {book.title}
-                  </h3>
-                  
-                  <div className="text-gray-600 mb-2">
-                    <span className="text-sm line-clamp-1">{book.author}</span>
-                  </div>
-                  
-                  <div className="text-gray-500 mb-3">
-                    <span className="text-xs">{book.publication_year}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-500">
-                      {book.available_quantity}/{book.total_quantity} dispo.
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {book.isbn.slice(-4)}
-                    </span>
+          Array.isArray(filteredBooks) ? (
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {filteredBooks.map((book) => (
+                <motion.div
+                  key={book.id}
+                  variants={itemVariants}
+                  className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl"
+                >
+                  {/* Image - Format portrait comme un vrai livre */}
+                  <div className="relative h-72 overflow-hidden rounded-t-xl">
+                    <img
+                      src={getBookImage(book)}
+                      alt={book.title}
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    {/* Badge de disponibilité seulement */}
+                    <div className="absolute top-3 right-3">
+                      <Badge 
+                        variant={book.available_quantity > 0 ? "default" : "destructive"}
+                        className={`${book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"} rounded-full px-2 py-1 text-xs`}
+                      >
+                        {book.available_quantity > 0 ? "●" : "●"}
+                      </Badge>
+                    </div>
+                    
+                    {/* Genre en bas de l'image */}
+                    <div className="absolute bottom-3 left-3">
+                      <Badge 
+                        variant="secondary" 
+                        className="bg-black/80 text-white font-medium rounded-full px-2 py-1 text-xs"
+                      >
+                        {book.genre}
+                      </Badge>
+                    </div>
                   </div>
 
-                  {/* Actions - Plus compactes */}
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-lg text-xs"
-                      onClick={() => window.location.href = `/livre/${book.id}`}
-                    >
-                      Voir
-                    </Button>
-                    <Button 
-                      size="sm"
-                      className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg text-xs"
-                      disabled={book.available_quantity === 0}
-                    >
-                      Emprunter
-                    </Button>
+                  {/* Contenu - Plus compact */}
+                  <div className="p-4">
+                    <h3 className="text-base font-medium text-gray-900 mb-2 group-hover:text-black transition-colors line-clamp-2">
+                      {book.title}
+                    </h3>
+                    
+                    <div className="text-gray-600 mb-2">
+                      <span className="text-sm line-clamp-1">{book.author}</span>
+                    </div>
+                    
+                    <div className="text-gray-500 mb-3">
+                      <span className="text-xs">{book.publication_year}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs text-gray-500">
+                        {book.available_quantity}/{book.total_quantity} dispo.
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {book.isbn.slice(-4)}
+                      </span>
+                    </div>
+
+                    {/* Actions - Plus compactes */}
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-lg text-xs"
+                        onClick={() => window.location.href = `/livre/${book.id}`}
+                      >
+                        Voir
+                      </Button>
+                      <Button 
+                        size="sm"
+                        className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg text-xs"
+                        disabled={book.available_quantity === 0}
+                      >
+                        Emprunter
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : null
         )}
       </div>
       
       <Footer />
     </div>
   )
+}
+
+// Type guards for genre and author objects
+function isGenreObj(obj: unknown): obj is { genre: string } {
+  return typeof obj === 'object' && obj !== null && 'genre' in obj && typeof (obj as { genre: unknown }).genre === 'string'
+}
+function isNameObj(obj: unknown): obj is { name: string } {
+  return typeof obj === 'object' && obj !== null && 'name' in obj && typeof (obj as { name: unknown }).name === 'string'
+}
+function isAuthorObj(obj: unknown): obj is { author: string } {
+  return typeof obj === 'object' && obj !== null && 'author' in obj && typeof (obj as { author: unknown }).author === 'string'
 }
 
 export default Catalogue

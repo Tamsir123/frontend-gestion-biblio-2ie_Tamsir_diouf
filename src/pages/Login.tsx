@@ -30,6 +30,8 @@ const Login = () => {
     setError('');
 
     try {
+      console.log('Tentative de connexion avec:', { email: formData.email });
+      
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
@@ -38,22 +40,31 @@ const Login = () => {
         body: JSON.stringify(formData),
       });
 
+      console.log('Réponse reçue:', response.status, response.statusText);
+      
       const data = await response.json();
+      console.log('Données reçues:', data);
 
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
         
-        if (data.user.role === 'admin') {
-          navigate('/admin/dashboard');
+        // Redirection basée sur le rôle
+        if (data.data.user.role === 'admin') {
+          navigate('/admin');
         } else {
-          navigate('/dashboard');
+          navigate('/');
         }
       } else {
         setError(data.message || 'Erreur de connexion');
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      console.error('Erreur de connexion:', err);
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur le port 5000.');
+      } else {
+        setError('Erreur de connexion au serveur');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -241,7 +252,8 @@ const Login = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <p><strong>Demo :</strong> admin@2ie.edu / admin123</p>
+            <p><strong>Demo Admin :</strong> admin@biblio.com / AdminPass123</p>
+            <p><strong>Demo Étudiant :</strong> john.doe@example.com / Password123</p>
           </motion.div>
         </div>
       </motion.div>

@@ -62,8 +62,14 @@ const Profil = () => {
   })
 
   useEffect(() => {
+    // Vérifie si l'utilisateur est connecté (token présent)
+    const token = localStorage.getItem('token')
+    if (!token) {
+      window.location.href = '/login'
+      return
+    }
     fetchProfile()
-    fetchStats()
+    // fetchStats() supprimé car stats sont dans fetchProfile
   }, [])
 
   const fetchProfile = async () => {
@@ -78,13 +84,14 @@ const Profil = () => {
 
       if (response.ok) {
         const data = await response.json()
-        setProfile(data.user)
+        setProfile(data.data.user)
+        setStats(data.data.stats)
         setEditForm({
-          first_name: data.user.first_name || '',
-          last_name: data.user.last_name || '',
-          phone: data.user.phone || '',
-          address: data.user.address || '',
-          bio: data.user.bio || ''
+          first_name: data.data.user.first_name || '',
+          last_name: data.data.user.last_name || '',
+          phone: data.data.user.phone || '',
+          address: data.data.user.address || '',
+          bio: data.data.user.bio || ''
         })
       }
     } catch (error) {
@@ -114,32 +121,6 @@ const Profil = () => {
       })
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/users/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data.stats)
-      }
-    } catch (error) {
-      console.error('Erreur:', error)
-      // Données d'exemple
-      const testStats: ProfileStats = {
-        total_borrowed: 24,
-        current_borrowed: 3,
-        total_reviews: 8,
-        favorite_genre: 'Technologie'
-      }
-      setStats(testStats)
     }
   }
 

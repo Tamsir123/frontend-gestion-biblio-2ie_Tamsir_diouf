@@ -12,6 +12,7 @@ import Catalogue from "./pages/Catalogue";
 import BookDetails from "./pages/BookDetails";
 import MesEmprunts from "./pages/MesEmprunts";
 import Profil from "./pages/Profil";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import FireCatProject from "./pages/FireCatProject";
 import SportRetailProject from "./pages/SportRetailProject";
@@ -43,6 +44,10 @@ const App = () => {
             <Route path="/livre/:id" element={<BookDetails />} />
             <Route path="/mes-emprunts" element={<MesEmprunts />} />
             <Route path="/profil" element={<Profil />} />
+            
+            {/* Route Admin simple */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            
             <Route path="/projects/firecat" element={<FireCatProject />} />
             <Route path="/projects/sport-retail" element={<SportRetailProject />} />
             <Route path="/projects/workwear" element={<WorkwearProject />} />

@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, EyeOff, Lock, Mail, User, X, ArrowRight } from 'lucide-react';
 
 const Inscription = () => {
@@ -16,8 +15,7 @@ const Inscription = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'student'
+    confirmPassword: ''
   });
 
   const navigate = useNavigate();
@@ -29,13 +27,6 @@ const Inscription = () => {
     });
     if (error) setError('');
     if (success) setSuccess('');
-  };
-
-  const handleRoleChange = (value: string) => {
-    setFormData({
-      ...formData,
-      role: value
-    });
   };
 
   const validateForm = () => {
@@ -79,8 +70,7 @@ const Inscription = () => {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password,
-          role: formData.role
+          password: formData.password
         }),
       });
 
@@ -223,19 +213,6 @@ const Inscription = () => {
                   placeholder="Adresse email"
                 />
               </div>
-            </div>
-
-            {/* Role Selection */}
-            <div className="space-y-2">
-              <Select value={formData.role} onValueChange={handleRoleChange}>
-                <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-0 rounded-none bg-gray-50 focus:bg-white">
-                  <SelectValue placeholder="Type de compte" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Étudiant</SelectItem>
-                  <SelectItem value="admin">Administrateur</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             {/* Password Field */}

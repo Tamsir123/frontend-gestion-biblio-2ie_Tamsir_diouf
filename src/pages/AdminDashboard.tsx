@@ -43,6 +43,28 @@ interface DashboardStats {
   average_rating: number
 }
 
+interface User {
+  id: number
+  name: string
+  email: string
+  role: 'student' | 'admin'
+  is_active: boolean
+  profile_image?: string
+  phone?: string
+  address?: string
+  date_of_birth?: string
+  created_at: string
+  updated_at: string
+}
+
+interface UserStats {
+  active_borrowings: number
+  total_borrowed: number
+  overdue_books: number
+  reviews_given: number
+  average_rating_given: number
+}
+
 interface Borrowing {
   id: number
   user_id: number
@@ -106,6 +128,20 @@ const AdminDashboard = () => {
   const [borrowings, setBorrowings] = useState([])
   const [borrowingsLoading, setBorrowingsLoading] = useState(false)
   const [borrowingsStats, setBorrowingsStats] = useState(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
+  const [userBorrowings, setUserBorrowings] = useState<Borrowing[]>([])
+  const [showAddUserModal, setShowAddUserModal] = useState(false)
+  const [showEditUserModal, setShowEditUserModal] = useState(false)
+  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false)
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'student' as 'student' | 'admin'
+  })
   const [showAddBookModal, setShowAddBookModal] = useState(false)
   const [showEditBookModal, setShowEditBookModal] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
@@ -169,8 +205,25 @@ const AdminDashboard = () => {
       // Traiter les utilisateurs (si l'API est disponible)
       if (usersRes && usersRes.ok) {
         const usersData = await usersRes.json()
-        totalUsers = usersData.users ? usersData.users.length : totalUsers
-        console.log('Nombre d\'utilisateurs récupérés:', totalUsers)
+        console.log('Données utilisateurs pour stats:', usersData)
+        // Adapter la structure de réponse pour les utilisateurs
+        const usersArray = usersData.data?.users || usersData.users || []
+        totalUsers = usersArray.length
+        console.log('Nombre d\'utilisateurs récupérés pour les stats:', totalUsers)
+      } else if (usersRes) {
+        console.log('Erreur lors de la récupération des utilisateurs pour les stats:', usersRes.status)
+        // Essayer de récupérer depuis l'état local si disponible
+        if (users.length > 0) {
+          totalUsers = users.length
+          console.log('Utilisation du nombre d\'utilisateurs depuis l\'état local:', totalUsers)
+        }
+      } else {
+        console.log('API users non disponible pour les stats, utilisation de la valeur par défaut')
+        // Essayer de récupérer depuis l'état local si disponible
+        if (users.length > 0) {
+          totalUsers = users.length
+          console.log('Utilisation du nombre d\'utilisateurs depuis l\'état local:', totalUsers)
+        }
       }
 
       // Traiter les emprunts (si l'API est disponible)
@@ -220,7 +273,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [toast, users.length])
 
   const fetchBooks = useCallback(async () => {
     setBooksLoading(true)
@@ -305,6 +358,247 @@ const AdminDashboard = () => {
       setBorrowingsLoading(false)
     }
   }, [toast])
+
+  const fetchUsers = useCallback(async () => {
+    setUsersLoading(true)
+    try {
+      console.log('=== RÉCUPÉRATION DES UTILISATEURS ===')
+      const token = localStorage.getItem('token')
+      const userStr = localStorage.getItem('user')
+      
+      if (!token) {
+        console.error('Token manquant pour récupérer les utilisateurs')
+        return
+      }
+
+      console.log('Token présent:', !!token)
+      console.log('User data from localStorage:', userStr)
+      
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        console.log('Utilisateur connecté:', user)
+        console.log('Rôle utilisateur:', user.role)
+        console.log('Est admin?', user.role === 'admin')
+        
+        if (user.role !== 'admin') {
+          console.error('Utilisateur non admin tentant d\'accéder aux utilisateurs')
+          toast({
+            title: "Accès refusé",
+            description: "Vous devez être administrateur pour voir les utilisateurs",
+            variant: "destructive"
+          })
+          return
+        }
+      }
+
+      console.log('URL:', 'http://localhost:5000/api/users')
+      
+      const res = await fetch('http://localhost:5000/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      console.log('Statut de la réponse utilisateurs:', res.status, res.statusText)
+      
+      const data = await res.json()
+      console.log('Données brutes utilisateurs reçues:', data)
+      
+      if (!res.ok) throw new Error(data.message || 'Erreur lors du chargement des utilisateurs')
+      
+      // Adapter la structure de réponse
+      const usersData = data.data?.users || data.users || []
+      console.log('Utilisateurs à afficher:', usersData)
+      console.log('Nombre d\'utilisateurs:', usersData.length)
+      
+      setUsers(usersData)
+      console.log('État users après setUsers:', usersData)
+      console.log('users state updated, length:', usersData.length)
+    } catch (error) {
+      console.error('=== ERREUR LORS DU CHARGEMENT DES UTILISATEURS ===')
+      console.error('Error:', error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les utilisateurs",
+        variant: "destructive"
+      })
+    } finally {
+      setUsersLoading(false)
+    }
+  }, [toast])
+
+  const handleAddUser = async (userData: typeof newUser) => {
+    try {
+      const token = localStorage.getItem('token')
+      
+      if (!token) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté",
+          variant: "destructive"
+        })
+        return
+      }
+
+      const res = await fetch('http://localhost:5000/api/users', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      })
+
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.message)
+
+      toast({
+        title: "Succès",
+        description: "Utilisateur ajouté avec succès"
+      })
+      
+      // Rafraîchir les données
+      fetchUsers()
+      fetchDashboardData() // Mettre à jour les statistiques
+      
+      setShowAddUserModal(false)
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        role: 'student'
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de l'ajout",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleEditUser = async (userData: Partial<User>) => {
+    try {
+      const token = localStorage.getItem('token')
+      
+      if (!token || !selectedUser) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté",
+          variant: "destructive"
+        })
+        return
+      }
+
+      const res = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      })
+
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.message)
+
+      toast({
+        title: "Succès",
+        description: "Utilisateur modifié avec succès"
+      })
+      
+      // Rafraîchir les données
+      fetchUsers()
+      fetchDashboardData() // Mettre à jour les statistiques
+      
+      setShowEditUserModal(false)
+      setSelectedUser(null)
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        role: 'student'
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de la modification",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleDeleteUser = async (userId: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await res.json()
+      
+      if (!res.ok) throw new Error(data.message)
+
+      toast({
+        title: "Succès",
+        description: "Utilisateur supprimé avec succès"
+      })
+      
+      // Rafraîchir les données
+      fetchUsers()
+      fetchDashboardData() // Mettre à jour les statistiques
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de la suppression",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const fetchUserDetails = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('token')
+      
+      if (!token) return
+
+      // Récupérer les statistiques de l'utilisateur
+      const statsRes = await fetch(`http://localhost:5000/api/users/${userId}/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (statsRes.ok) {
+        const statsData = await statsRes.json()
+        setUserStats(statsData.data)
+      }
+
+      // Récupérer l'historique des emprunts
+      const borrowingsRes = await fetch(`http://localhost:5000/api/users/${userId}/borrowings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (borrowingsRes.ok) {
+        const borrowingsData = await borrowingsRes.json()
+        setUserBorrowings(borrowingsData.data?.borrowings || [])
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails utilisateur:', error)
+    }
+  }
 
   const handleAddBook = async (bookData) => {
     try {
@@ -515,8 +809,10 @@ const AdminDashboard = () => {
       fetchBooks()
     } else if (activeTab === 'borrowings') {
       fetchBorrowings()
+    } else if (activeTab === 'users') {
+      fetchUsers()
     }
-  }, [activeTab, fetchBooks, fetchBorrowings])
+  }, [activeTab, fetchBooks, fetchBorrowings, fetchUsers])
 
   // Fonctions utilitaires pour les emprunts
   const formatDate = (dateString: string) => {
@@ -857,15 +1153,152 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Autres onglets */}
+        {/* Gestion des utilisateurs */}
         {activeTab === 'users' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des utilisateurs</h2>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-gray-600">Fonctionnalité en développement...</p>
-              </CardContent>
-            </Card>
+            {/* Log pour debugger */}
+            {console.log('=== RENDU ONGLET UTILISATEURS ===')}
+            {console.log('users state dans le rendu:', users)}
+            {console.log('users.length dans le rendu:', users.length)}
+            {console.log('usersLoading dans le rendu:', usersLoading)}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Gestion des utilisateurs</h2>
+              <Button
+                onClick={() => setShowAddUserModal(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un utilisateur
+              </Button>
+            </div>
+
+            {usersLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Chargement des utilisateurs...</p>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Utilisateur
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Email
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Rôle
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date d'inscription
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {users.map((user, index) => {
+                          console.log(`Rendu utilisateur ${index}:`, user)
+                          return (
+                            <tr key={user.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10">
+                                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                      <Users className="h-5 w-5 text-gray-600" />
+                                    </div>
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                    <div className="text-sm text-gray-500">ID: {user.id}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {user.email}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  user.role === 'admin' 
+                                    ? 'bg-purple-100 text-purple-800' 
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {user.role === 'admin' ? 'Administrateur' : 'Étudiant'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  user.is_active 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {user.is_active ? 'Actif' : 'Inactif'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {formatDate(user.created_at)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedUser(user)
+                                    fetchUserDetails(user.id)
+                                    setShowUserDetailsModal(true)
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Détails
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedUser(user)
+                                    setNewUser({
+                                      name: user.name,
+                                      email: user.email,
+                                      password: '',
+                                      role: user.role
+                                    })
+                                    setShowEditUserModal(true)
+                                  }}
+                                >
+                                  Modifier
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteUser(user.id)}
+                                >
+                                  Supprimer
+                                </Button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                        {users.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                              {usersLoading ? 'Chargement...' : 'Aucun utilisateur trouvé.'}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
@@ -1035,6 +1468,400 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Modal d'ajout d'utilisateur */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Ajouter un utilisateur</h3>
+              <button
+                onClick={() => {
+                  setShowAddUserModal(false)
+                  setNewUser({
+                    name: '',
+                    email: '',
+                    password: '',
+                    role: 'student'
+                  })
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleAddUser(newUser)
+              }}
+              className="space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom complet <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                  placeholder="Nom et prénom"
+                  required
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  placeholder="adresse@email.com"
+                  required
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mot de passe <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  placeholder="Minimum 6 caractères"
+                  required
+                  minLength={6}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rôle <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'student' | 'admin' })}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="student">Étudiant</option>
+                  <option value="admin">Administrateur</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddUserModal(false)
+                    setNewUser({
+                      name: '',
+                      email: '',
+                      password: '',
+                      role: 'student'
+                    })
+                  }}
+                  className="px-6 py-2"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-2"
+                >
+                  Ajouter l'utilisateur
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de modification d'utilisateur */}
+      {showEditUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Modifier l'utilisateur</h3>
+              <button
+                onClick={() => {
+                  setShowEditUserModal(false)
+                  setSelectedUser(null)
+                  setNewUser({
+                    name: '',
+                    email: '',
+                    password: '',
+                    role: 'student'
+                  })
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleEditUser({
+                  name: newUser.name,
+                  email: newUser.email,
+                  role: newUser.role,
+                  is_active: selectedUser.is_active
+                })
+              }}
+              className="space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom complet <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                  placeholder="Nom et prénom"
+                  required
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  placeholder="adresse@email.com"
+                  required
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rôle <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newUser.role}
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'student' | 'admin' })}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="student">Étudiant</option>
+                  <option value="admin">Administrateur</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedUser.is_active}
+                    onChange={(e) => setSelectedUser({ ...selectedUser, is_active: e.target.checked })}
+                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Compte actif</span>
+                </label>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditUserModal(false)
+                    setSelectedUser(null)
+                    setNewUser({
+                      name: '',
+                      email: '',
+                      password: '',
+                      role: 'student'
+                    })
+                  }}
+                  className="px-6 py-2"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-2"
+                >
+                  Modifier l'utilisateur
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal des détails d'utilisateur */}
+      {showUserDetailsModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Détails de l'utilisateur</h3>
+              <button
+                onClick={() => {
+                  setShowUserDetailsModal(false)
+                  setSelectedUser(null)
+                  setUserStats(null)
+                  setUserBorrowings([])
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Informations de base */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Informations personnelles</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Nom :</span>
+                    <p className="text-sm text-gray-900">{selectedUser.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Email :</span>
+                    <p className="text-sm text-gray-900">{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Rôle :</span>
+                    <p className="text-sm text-gray-900">
+                      {selectedUser.role === 'admin' ? 'Administrateur' : 'Étudiant'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Statut :</span>
+                    <p className="text-sm text-gray-900">
+                      {selectedUser.is_active ? 'Actif' : 'Inactif'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Inscription :</span>
+                    <p className="text-sm text-gray-900">{formatDate(selectedUser.created_at)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistiques */}
+              {userStats && (
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Statistiques</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center">
+                          <FileText className="h-8 w-8 text-blue-600" />
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-600">Emprunts actifs</p>
+                            <p className="text-xl font-bold text-gray-900">{userStats.active_borrowings}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center">
+                          <CheckCircle className="h-8 w-8 text-green-600" />
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-600">Total emprunts</p>
+                            <p className="text-xl font-bold text-gray-900">{userStats.total_borrowed}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center">
+                          <AlertTriangle className="h-8 w-8 text-red-600" />
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-600">En retard</p>
+                            <p className="text-xl font-bold text-gray-900">{userStats.overdue_books}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              )}
+
+              {/* Historique des emprunts */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Historique des emprunts</h4>
+                {userBorrowings.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Livre</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Emprunté le</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date limite</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {userBorrowings.slice(0, 5).map((borrowing) => (
+                          <tr key={borrowing.id}>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{borrowing.title}</div>
+                              <div className="text-sm text-gray-500">par {borrowing.author}</div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {formatDate(borrowing.borrowed_at)}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {formatDate(borrowing.due_date)}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              {getStatusBadge(borrowing)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {userBorrowings.length > 5 && (
+                      <p className="text-sm text-gray-500 mt-2 text-center">
+                        Et {userBorrowings.length - 5} autres emprunts...
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Aucun historique d'emprunt</p>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-6 border-t border-gray-200">
+                <Button
+                  onClick={() => {
+                    setShowUserDetailsModal(false)
+                    setSelectedUser(null)
+                    setUserStats(null)
+                    setUserBorrowings([])
+                  }}
+                  className="px-6 py-2"
+                >
+                  Fermer
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal d'ajout de livre */}
       {showAddBookModal && (

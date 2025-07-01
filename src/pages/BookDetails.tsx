@@ -22,6 +22,7 @@ interface Book {
   available_quantity: number
   publication_year: number
   created_at: string
+  cover_image?: string
 }
 
 interface Review {
@@ -146,7 +147,30 @@ const BookDetails = () => {
   }
 
   const getBookImage = (book: Book) => {
-    // Images spécifiques par livre pour plus de réalisme
+    console.log('getBookImage pour livre:', book.title, 'cover_image:', book.cover_image)
+    
+    // Priorité 1: Image réelle uploadée lors de l'ajout du livre
+    if (book.cover_image) {
+      // Si le chemin commence par /uploads/ ou uploads/, construire l'URL complète
+      if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
+        const imageUrl = `http://localhost:5000${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`
+        console.log('URL image construite:', imageUrl)
+        return imageUrl
+      }
+      // Si c'est déjà une URL complète
+      if (book.cover_image.startsWith('http')) {
+        console.log('URL image complète détectée:', book.cover_image)
+        return book.cover_image
+      }
+      // Sinon, construire l'URL
+      const imageUrl = `http://localhost:5000/uploads/${book.cover_image}`
+      console.log('URL image construite (fallback):', imageUrl)
+      return imageUrl
+    }
+
+    console.log('Pas d\'image pour', book.title, ', utilisation des images par défaut')
+
+    // Priorité 2: Images spécifiques par livre (pour les anciens livres)
     const bookImages: { [key: number]: string } = {
       1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=600&fit=crop', // IA
       2: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop', // Histoire Afrique
@@ -162,6 +186,7 @@ const BookDetails = () => {
       12: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=600&fit=crop'  // Marketing digital
     }
 
+    // Priorité 3: Images par genre comme fallback final
     return bookImages[book.id] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop'
   }
 

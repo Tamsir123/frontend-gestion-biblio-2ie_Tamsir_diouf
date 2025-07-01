@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, Filter, Book, User, Calendar, ArrowRight, X, ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +22,7 @@ interface Book {
   available_quantity: number
   publication_year: number
   created_at: string
+  cover_image?: string // Champ pour l'image de couverture uploadée
 }
 
 const Catalogue = () => {
@@ -66,17 +67,7 @@ const Catalogue = () => {
     }
   }
 
-  // Récupération des livres depuis l'API
-  useEffect(() => {
-    fetchBooks()
-  }, [searchTerm, selectedGenre, selectedAuthor, sortBy])
-
-  useEffect(() => {
-    fetchGenres()
-    fetchAuthors()
-  }, [])
-
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     try {
       setLoading(true)
       let url = 'http://localhost:5000/api/books?'
@@ -103,7 +94,17 @@ const Catalogue = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [searchTerm, selectedGenre, selectedAuthor])
+
+  // Récupération des livres depuis l'API
+  useEffect(() => {
+    fetchBooks()
+  }, [fetchBooks])
+
+  useEffect(() => {
+    fetchGenres()
+    fetchAuthors()
+  }, [])
 
   const fetchGenres = async () => {
     try {
@@ -195,7 +196,31 @@ const Catalogue = () => {
   }
 
   const getBookImage = (book: Book) => {
-    // Images spécifiques par livre pour plus de réalisme
+    console.log('getBookImage pour livre:', book.title, 'cover_image:', book.cover_image)
+    
+    // Priorité 1: Image réelle uploadée lors de l'ajout du livre
+    if (book.cover_image) {
+      console.log('Image trouvée pour', book.title, ':', book.cover_image)
+      // Si c'est un chemin relatif, construire l'URL complète vers le serveur
+      if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
+        const imageUrl = `http://localhost:5000/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`
+        console.log('URL image construite:', imageUrl)
+        return imageUrl
+      }
+      // Si c'est déjà une URL complète
+      if (book.cover_image.startsWith('http')) {
+        console.log('URL image complète:', book.cover_image)
+        return book.cover_image
+      }
+      // Sinon, construire l'URL
+      const imageUrl = `http://localhost:5000/uploads/${book.cover_image}`
+      console.log('URL image construite (fallback):', imageUrl)
+      return imageUrl
+    }
+
+    console.log('Pas d\'image pour', book.title, ', utilisation des images par défaut')
+
+    // Priorité 2: Images spécifiques par livre (pour les anciens livres)
     const bookImages: { [key: number]: string } = {
       1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=400&fit=crop', // IA
       2: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop', // Histoire Afrique
@@ -211,7 +236,7 @@ const Catalogue = () => {
       12: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=400&fit=crop'  // Marketing digital
     }
 
-    // Images par genre comme fallback
+    // Priorité 3: Images par genre comme fallback
     const genreImages: { [key: string]: string } = {
       'Technologie': 'https://images.unsplash.com/photo-1518709268805-4e9042af2ea0?w=300&h=400&fit=crop',
       'Histoire': 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop',
@@ -225,7 +250,9 @@ const Catalogue = () => {
       'Marketing': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=300&h=400&fit=crop'
     }
 
-    return bookImages[book.id] || genreImages[book.genre] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop'
+    const fallbackUrl = bookImages[book.id] || genreImages[book.genre] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop'
+    console.log('URL fallback utilisée:', fallbackUrl)
+    return fallbackUrl
   }
 
   if (loading) {

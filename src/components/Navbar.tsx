@@ -1,17 +1,88 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn, Shield } from "lucide-react";
+import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn, Shield, LogOut, Settings, UserCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+interface UserData {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  profile_image?: string;
+}
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState<UserData | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Vérifier l'état de connexion
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          setIsLoggedIn(true);
+        } catch (error) {
+          console.error('Erreur parsing user data:', error);
+          setIsLoggedIn(false);
+          setUser(null);
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+
+    checkAuthStatus();
+    
+    // Écouter les changements de localStorage
+    window.addEventListener('storage', checkAuthStatus);
+    return () => window.removeEventListener('storage', checkAuthStatus);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUser(null);
+    navigate('/');
+    setIsMenuOpen(false);
+  };
+
+  const getAvatarUrl = (user: UserData | null) => {
+    if (user?.profile_image) {
+      return user.profile_image.startsWith('/') 
+        ? `http://localhost:5000${user.profile_image}`
+        : user.profile_image;
+    }
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&size=40&background=3b82f6&color=ffffff&bold=true`;
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -197,25 +268,82 @@ const Navbar = () => {
             
             {/* Actions utilisateur */}
             <div className="flex items-center space-x-2 ml-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/mes-emprunts')}
-                className={cn("flex items-center", isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
-              >
-                <Book className="w-4 h-4 mr-2" />
-                Mes Emprunts
-              </Button>
-
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/profil')}
-                className={cn(isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Mon Compte
-              </Button>
+              {isLoggedIn ? (
+                <>
+                  {/* Menu utilisateur */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={cn("flex items-center space-x-2 px-2", isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
+                      >
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={getAvatarUrl(user)} alt={user?.name} />
+                          <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            {user?.name?.charAt(0)?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="hidden sm:flex flex-col items-start">
+                          <span className="text-sm font-medium leading-none">{user?.name}</span>
+                          <span className="text-xs opacity-70">{user?.role === 'admin' ? 'Administrateur' : 'Étudiant'}</span>
+                        </div>
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{user?.name}</p>
+                          <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/profil')} className="cursor-pointer">
+                        <UserCircle className="mr-2 h-4 w-4" />
+                        <span>Mon Profil</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/mes-emprunts')} className="cursor-pointer">
+                        <Book className="mr-2 h-4 w-4" />
+                        <span>Mes Emprunts</span>
+                      </DropdownMenuItem>
+                      {user?.role === 'admin' && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>Administration</span>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Déconnexion</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => navigate('/login')}
+                    className={cn(isScrolled ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50" : "text-gray-100 hover:text-white hover:bg-white/10")}
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Connexion
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => navigate('/inscription')}
+                    className={cn(isScrolled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white text-blue-600 hover:bg-gray-100")}
+                  >
+                    Inscription
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           
@@ -387,27 +515,96 @@ const Navbar = () => {
           
           {/* User Actions */}
           <div className="space-y-2">
-            <button 
-              onClick={() => {
-                navigate('/profil');
-                setIsMenuOpen(false);
-              }}
-              className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
-            >
-              <User className="w-4 h-4 mr-3" />
-              Mon Compte
-            </button>
-            
-            <Button 
-              onClick={() => {
-                navigate('/login');
-                setIsMenuOpen(false);
-              }}
-              className={cn("w-full justify-start", isScrolled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white text-blue-600 hover:bg-gray-100")}
-            >
-              <LogIn className="w-4 h-4 mr-3" />
-              Connexion
-            </Button>
+            {isLoggedIn ? (
+              <>
+                {/* Profil utilisateur mobile */}
+                <div className={cn("flex items-center space-x-3 px-3 py-3 rounded-lg", isScrolled ? "bg-gray-50" : "bg-white/10")}>
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={getAvatarUrl(user)} alt={user?.name} />
+                    <AvatarFallback className="bg-blue-600 text-white">
+                      {user?.name?.charAt(0)?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className={cn("text-sm font-medium", isScrolled ? "text-gray-900" : "text-white")}>
+                      {user?.name}
+                    </span>
+                    <span className={cn("text-xs", isScrolled ? "text-gray-600" : "text-gray-300")}>
+                      {user?.role === 'admin' ? 'Administrateur' : 'Étudiant'}
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    navigate('/profil');
+                    setIsMenuOpen(false);
+                  }}
+                  className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+                >
+                  <UserCircle className="w-4 h-4 mr-3" />
+                  Mon Profil
+                </button>
+
+                <button 
+                  onClick={() => {
+                    navigate('/mes-emprunts');
+                    setIsMenuOpen(false);
+                  }}
+                  className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+                >
+                  <Book className="w-4 h-4 mr-3" />
+                  Mes Emprunts
+                </button>
+
+                {user?.role === 'admin' && (
+                  <button 
+                    onClick={() => {
+                      navigate('/admin');
+                      setIsMenuOpen(false);
+                    }}
+                    className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-blue-50 hover:text-blue-600" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+                  >
+                    <Shield className="w-4 h-4 mr-3" />
+                    Administration
+                  </button>
+                )}
+                
+                <Button 
+                  onClick={handleLogout}
+                  variant="destructive"
+                  className="w-full justify-start"
+                >
+                  <LogOut className="w-4 h-4 mr-3" />
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => {
+                    navigate('/login');
+                    setIsMenuOpen(false);
+                  }}
+                  className={cn("w-full justify-start", isScrolled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white text-blue-600 hover:bg-gray-100")}
+                >
+                  <LogIn className="w-4 h-4 mr-3" />
+                  Connexion
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    navigate('/inscription');
+                    setIsMenuOpen(false);
+                  }}
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <User className="w-4 h-4 mr-3" />
+                  Inscription
+                </Button>
+              </>
+            )}
           </div>
           
           {/* Contact Info */}

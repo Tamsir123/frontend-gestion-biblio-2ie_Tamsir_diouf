@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { 
+  User, Mail, Phone, MapPin, Calendar, GraduationCap, 
+  Building, Globe, Heart, BookOpen, Star, Settings, 
+  Edit3, Save, X, Camera, Shield, Bell, Palette, 
+  MessageSquare, TrendingUp, Award, Clock, Target
+} from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { useToast } from '@/hooks/use-toast'
 
 interface UserProfile {
   id: number

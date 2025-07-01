@@ -11,7 +11,7 @@ import Inscription from "./pages/Incrisption";
 import Catalogue from "./pages/Catalogue";
 import BookDetails from "./pages/BookDetails";
 import MesEmprunts from "./pages/MesEmprunts";
-import Profil from "./pages/Profil";
+import ProfilNew from "./pages/ProfilNew";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBooks from "./pages/AdminBooks";
 import AdminRoute from "./components/AdminRoute";
@@ -45,7 +45,7 @@ const App = () => {
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/livre/:id" element={<BookDetails />} />
             <Route path="/mes-emprunts" element={<MesEmprunts />} />
-            <Route path="/profil" element={<Profil />} />
+            <Route path="/profil" element={<ProfilNew />} />
             
             {/* Routes Admin protégées */}
             <Route path="/admin" element={

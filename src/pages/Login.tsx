@@ -52,6 +52,9 @@ const Login = () => {
         console.log('Utilisateur connecté:', data.data.user);
         console.log('Rôle de l\'utilisateur:', data.data.user.role);
         
+        // Déclencher un événement pour informer la navbar
+        window.dispatchEvent(new Event('storage'));
+        
         // Redirection basée sur le rôle
         if (data.data.user.role === 'admin') {
           console.log('Redirection vers /admin...');

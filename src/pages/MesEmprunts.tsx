@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, Book, RotateCcw, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Calendar, Clock, Book, RotateCcw, CheckCircle, AlertTriangle, RefreshCw, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import ReviewModal from '@/components/ReviewModal'
 import { useToast } from '@/hooks/use-toast'
 
 interface Borrowing {
@@ -30,11 +31,50 @@ const MesEmprunts = () => {
   const [loading, setLoading] = useState(true)
   const [renewingId, setRenewingId] = useState<number | null>(null)
   const [returningId, setReturningId] = useState<number | null>(null)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [selectedBookForReview, setSelectedBookForReview] = useState<{
+    id: number
+    title: string
+    author: string
+    cover_image?: string
+  } | null>(null)
+  const [userReviews, setUserReviews] = useState<{ [bookId: number]: boolean }>({})
   const { toast } = useToast()
 
   useEffect(() => {
     fetchMyBorrowings()
+    checkUserReviews()
   }, [])
+
+  // Vérifier quels livres ont déjà des avis de l'utilisateur
+  const checkUserReviews = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      // Récupérer les avis de l'utilisateur
+      const response = await fetch('http://localhost:5000/api/reviews/my-reviews', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const reviewedBooks: { [bookId: number]: boolean } = {}
+        
+        if (data.reviews) {
+          data.reviews.forEach((review: { book_id: number }) => {
+            reviewedBooks[review.book_id] = true
+          })
+        }
+        
+        setUserReviews(reviewedBooks)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification des avis:', error)
+    }
+  }
 
   const fetchMyBorrowings = async () => {
     try {
@@ -230,6 +270,35 @@ const MesEmprunts = () => {
     } finally {
       setReturningId(null)
     }
+  }
+
+  // Ouvrir la modal de review pour un livre
+  const handleOpenReviewModal = (borrowing: Borrowing) => {
+    setSelectedBookForReview({
+      id: borrowing.book_id,
+      title: borrowing.title,
+      author: borrowing.author,
+      cover_image: (borrowing as { book_cover_image?: string }).book_cover_image
+    })
+    setReviewModalOpen(true)
+  }
+
+  // Fermer la modal de review
+  const handleCloseReviewModal = () => {
+    setReviewModalOpen(false)
+    setSelectedBookForReview(null)
+  }
+
+  // Callback après soumission d'un avis
+  const handleReviewSubmitted = () => {
+    if (selectedBookForReview) {
+      setUserReviews(prev => ({
+        ...prev,
+        [selectedBookForReview.id]: true
+      }))
+    }
+    // Recharger les avis pour ce livre
+    checkUserReviews()
   }
 
   const getStatusBadge = (status: string) => {
@@ -577,13 +646,34 @@ const MesEmprunts = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Historique</h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Historique</h2>
+            {returnedBorrowings.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-2">
+                <p className="text-sm text-blue-800 flex items-center">
+                  <Star className="w-4 h-4 mr-2 text-blue-600" />
+                  Partagez votre expérience en donnant un avis !
+                </p>
+              </div>
+            )}
+          </div>
           
           {returnedBorrowings.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-3xl shadow-sm border border-gray-100">
               <CheckCircle className="w-20 h-20 text-gray-300 mx-auto mb-6" />
               <h3 className="text-2xl font-medium text-gray-900 mb-3">Aucun historique</h3>
-              <p className="text-gray-600 text-lg">Vous n'avez encore retourné aucun livre</p>
+              <p className="text-gray-600 text-lg mb-4">Vous n'avez encore retourné aucun livre</p>
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-md mx-auto">
+                <div className="flex items-start space-x-3">
+                  <Star className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-blue-800 mb-1">Le saviez-vous ?</p>
+                    <p className="text-sm text-blue-700">
+                      Après avoir retourné un livre, vous pourrez laisser un avis pour aider les autres lecteurs !
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -611,6 +701,24 @@ const MesEmprunts = () => {
                     </div>
                     <div className="flex items-center gap-3">
                       {getStatusBadge(borrowing.status)}
+                      {/* Bouton pour donner un avis */}
+                      {!userReviews[borrowing.book_id] ? (
+                        <Button
+                          onClick={() => handleOpenReviewModal(borrowing)}
+                          size="sm"
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm"
+                        >
+                          <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Donner un avis</span>
+                          <span className="sm:hidden">Avis</span>
+                        </Button>
+                      ) : (
+                        <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                          <Star className="w-3 h-3 mr-1 fill-current" />
+                          <span className="hidden sm:inline">Avis donné</span>
+                          <span className="sm:hidden">✓</span>
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -621,6 +729,16 @@ const MesEmprunts = () => {
       </motion.div>
 
       <Footer />
+
+      {/* Modal de review */}
+      {reviewModalOpen && selectedBookForReview && (
+        <ReviewModal 
+          isOpen={reviewModalOpen}
+          onClose={handleCloseReviewModal}
+          book={selectedBookForReview}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
     </div>
   )
 }

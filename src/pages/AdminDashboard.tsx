@@ -90,6 +90,9 @@ const AdminDashboard = () => {
   })
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
+  const [books, setBooks] = useState([])
+  const [booksLoading, setBooksLoading] = useState(false)
+  const [booksError, setBooksError] = useState('')
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -160,6 +163,25 @@ const AdminDashboard = () => {
     fetchDashboardData()
   }, [fetchDashboardData])
 
+  const fetchBooks = async () => {
+    setBooksLoading(true)
+    setBooksError('')
+    try {
+      const res = await fetch('http://localhost:5000/api/books')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Erreur lors du chargement des livres')
+      setBooks(data.books || [])
+    } catch (e) {
+      setBooksError(e.message || 'Erreur lors du chargement des livres')
+    } finally {
+      setBooksLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'books') fetchBooks()
+  }, [activeTab])
+
   const quickActions: QuickAction[] = [
     {
       icon: Plus,
@@ -219,18 +241,18 @@ const AdminDashboard = () => {
               {description && (
                 <p className="text-gray-500 text-xs mt-1">{description}</p>
               )}
+              <div className={`h-12 w-12 rounded-lg ${color} flex items-center justify-center`}>
+                <Icon className="h-6 w-6 text-white" />
+              </div>
             </div>
-            <div className={`h-12 w-12 rounded-lg ${color} flex items-center justify-center`}>
-              <Icon className="h-6 w-6 text-white" />
-            </div>
+            {change && (
+              <div className="mt-4 flex items-center">
+                <TrendingUp className="h-4 w-4 text-green-400 mr-1" />
+                <span className="text-green-400 text-sm font-medium">+{change}%</span>
+                <span className="text-gray-500 text-sm ml-2">ce mois</span>
+              </div>
+            )}
           </div>
-          {change && (
-            <div className="mt-4 flex items-center">
-              <TrendingUp className="h-4 w-4 text-green-400 mr-1" />
-              <span className="text-green-400 text-sm font-medium">+{change}%</span>
-              <span className="text-gray-500 text-sm ml-2">ce mois</span>
-            </div>
-          )}
         </CardContent>
       </Card>
     </motion.div>
@@ -528,14 +550,46 @@ const AdminDashboard = () => {
             </TabsContent>
 
             <TabsContent value="books">
-              <div className="text-center py-20">
-                <BookOpen className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+              <div className="text-center py-6">
                 <h3 className="text-xl font-semibold text-white mb-2">Gestion des Livres</h3>
-                <p className="text-gray-400 mb-6">Ajoutez un nouveau livre au catalogue</p>
-                <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowAddBookModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un livre
+                <Button className="bg-blue-600 hover:bg-blue-700 mb-4" onClick={() => setShowAddBookModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Ajouter un livre
                 </Button>
+                {booksLoading && <div className="text-white">Chargement des livres...</div>}
+                {booksError && <div className="text-red-500">{booksError}</div>}
+                <div className="overflow-x-auto mt-4">
+                  <table className="min-w-full bg-gray-800 text-white rounded-lg">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-2">Titre</th>
+                        <th className="px-4 py-2">Auteur</th>
+                        <th className="px-4 py-2">Genre</th>
+                        <th className="px-4 py-2">Année</th>
+                        <th className="px-4 py-2">Quantité</th>
+                        <th className="px-4 py-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {books.map((book) => (
+                        <tr key={book.id} className="border-b border-gray-700">
+                          <td className="px-4 py-2">{book.title}</td>
+                          <td className="px-4 py-2">{book.author}</td>
+                          <td className="px-4 py-2">{book.genre}</td>
+                          <td className="px-4 py-2">{book.publication_year}</td>
+                          <td className="px-4 py-2">{book.total_quantity}</td>
+                          <td className="px-4 py-2 flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => {/* à compléter étape suivante */}}>
+                              Modifier
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => {/* à compléter étape suivante */}}>
+                              Supprimer
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               {/* Modale d'ajout de livre */}
               <Dialog open={showAddBookModal} onOpenChange={setShowAddBookModal}>

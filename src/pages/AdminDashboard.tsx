@@ -43,6 +43,34 @@ interface DashboardStats {
   average_rating: number
 }
 
+interface Borrowing {
+  id: number
+  user_id: number
+  book_id: number
+  borrowed_at: string
+  due_date: string
+  returned_at?: string
+  status: 'active' | 'returned' | 'overdue'
+  current_status: 'active' | 'returned' | 'overdue'
+  days_overdue?: number
+  notes?: string
+  user_name: string
+  user_email: string
+  title: string
+  author: string
+  isbn: string
+}
+
+interface BorrowingsResponse {
+  borrowings: Borrowing[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
 interface RecentActivity {
   id: number
   type: 'borrowing' | 'return' | 'user_registration' | 'book_added' | 'review_added'
@@ -71,14 +99,18 @@ interface StatCardProps {
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
+  const [books, setBooks] = useState([])
+  const [booksLoading, setBooksLoading] = useState(false)
+  const [borrowings, setBorrowings] = useState([])
+  const [borrowingsLoading, setBorrowingsLoading] = useState(false)
+  const [borrowingsStats, setBorrowingsStats] = useState(null)
   const [showAddBookModal, setShowAddBookModal] = useState(false)
-  const [addBookLoading, setAddBookLoading] = useState(false)
-  const [addBookError, setAddBookError] = useState('')
-  const [addBookSuccess, setAddBookSuccess] = useState('')
+  const [showEditBookModal, setShowEditBookModal] = useState(false)
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -88,70 +120,101 @@ const AdminDashboard = () => {
     total_quantity: 1,
     description: ''
   })
-  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
-  const [books, setBooks] = useState([])
-  const [booksLoading, setBooksLoading] = useState(false)
-  const [booksError, setBooksError] = useState('')
   const navigate = useNavigate()
   const { toast } = useToast()
 
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true)
-      // Simuler l'appel API - remplacer par vos vraies API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const token = localStorage.getItem('token')
       
-      // Données simulées basées sur votre structure de BDD
-      const mockStats: DashboardStats = {
-        total_users: 245,
-        total_books: 1847,
-        total_borrowings: 3456,
-        active_borrowings: 89,
-        overdue_borrowings: 12,
-        pending_reviews: 23,
-        new_users_this_month: 31,
-        books_borrowed_this_month: 187,
-        total_reviews: 456,
-        average_rating: 4.3
+      if (!token) {
+        console.log('Pas de token pour récupérer les stats')
+        setLoading(false)
+        return
       }
 
-      const mockActivities: RecentActivity[] = [
-        {
-          id: 1,
-          type: 'borrowing',
-          message: 'Jean Dupont a emprunté "Le Petit Prince"',
-          timestamp: '2024-12-27T10:30:00Z',
-          user: 'Jean Dupont'
-        },
-        {
-          id: 2,
-          type: 'return',
-          message: 'Marie Martin a retourné "1984"',
-          timestamp: '2024-12-27T09:15:00Z',
-          user: 'Marie Martin'
-        },
-        {
-          id: 3,
-          type: 'user_registration',
-          message: 'Nouvel utilisateur inscrit : Ahmed Sow',
-          timestamp: '2024-12-27T08:45:00Z',
-          user: 'Ahmed Sow'
-        },
-        {
-          id: 4,
-          type: 'review_added',
-          message: 'Nouvel avis ajouté sur "Les Misérables"',
-          timestamp: '2024-12-26T16:20:00Z'
-        }
-      ]
+      console.log('Récupération des statistiques du dashboard...')
+      
+      // Récupérer les statistiques réelles depuis l'API
+      const [booksRes, usersRes, borrowingsRes] = await Promise.all([
+        fetch('http://localhost:5000/api/books', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:5000/api/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => null), // En cas d'erreur, continuer sans les users
+        fetch('http://localhost:5000/api/borrowings', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => null) // En cas d'erreur, continuer sans les emprunts
+      ])
 
-      setStats(mockStats)
-      setRecentActivities(mockActivities)
+      let totalBooks = 0
+      let totalUsers = 245 // Valeur par défaut si l'API users n'est pas disponible
+      let totalBorrowings = 0
+      let activeBorrowings = 0
+      let overdueBorrowings = 0
+
+      // Traiter les livres
+      if (booksRes.ok) {
+        const booksData = await booksRes.json()
+        console.log('Données livres pour stats:', booksData)
+        totalBooks = booksData.data?.books ? booksData.data.books.length : 
+                    booksData.books ? booksData.books.length : 0
+        console.log('Nombre de livres récupérés:', totalBooks)
+      } else {
+        console.log('Erreur lors de la récupération des livres:', booksRes.status)
+      }
+
+      // Traiter les utilisateurs (si l'API est disponible)
+      if (usersRes && usersRes.ok) {
+        const usersData = await usersRes.json()
+        totalUsers = usersData.users ? usersData.users.length : totalUsers
+        console.log('Nombre d\'utilisateurs récupérés:', totalUsers)
+      }
+
+      // Traiter les emprunts (si l'API est disponible)
+      if (borrowingsRes && borrowingsRes.ok) {
+        const borrowingsData = await borrowingsRes.json()
+        console.log('Données emprunts pour stats:', borrowingsData)
+        
+        const borrowings = borrowingsData.data?.borrowings || borrowingsData.borrowings || []
+        totalBorrowings = borrowingsData.data?.pagination?.total || borrowings.length
+        
+        // Compter les emprunts actifs et en retard
+        activeBorrowings = borrowings.filter(b => b.current_status === 'active').length
+        overdueBorrowings = borrowings.filter(b => b.current_status === 'overdue').length
+        
+        console.log('Statistiques emprunts:', {
+          total: totalBorrowings,
+          actifs: activeBorrowings,
+          retards: overdueBorrowings
+        })
+      } else {
+        console.log('Erreur lors de la récupération des emprunts pour les stats')
+      }
+
+      // Créer les statistiques avec les vraies données
+      const realStats: DashboardStats = {
+        total_users: totalUsers,
+        total_books: totalBooks,
+        total_borrowings: totalBorrowings,
+        active_borrowings: activeBorrowings,
+        overdue_borrowings: overdueBorrowings,
+        pending_reviews: 0,
+        new_users_this_month: 0,
+        books_borrowed_this_month: 0,
+        total_reviews: 0,
+        average_rating: 0
+      }
+
+      console.log('Statistiques finales:', realStats)
+      setStats(realStats)
     } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques:', error)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les données du dashboard",
+        description: "Impossible de charger les données",
         variant: "destructive"
       })
     } finally {
@@ -159,63 +222,280 @@ const AdminDashboard = () => {
     }
   }, [toast])
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [fetchDashboardData])
-
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     setBooksLoading(true)
-    setBooksError('')
     try {
+      console.log('=== RÉCUPÉRATION DES LIVRES ===')
+      console.log('URL:', 'http://localhost:5000/api/books')
+      
       const res = await fetch('http://localhost:5000/api/books')
+      console.log('Statut de la réponse:', res.status, res.statusText)
+      
       const data = await res.json()
+      console.log('Données brutes reçues:', data)
+      console.log('Type de data:', typeof data)
+      console.log('data.data:', data.data)
+      console.log('data.data.books:', data.data?.books)
+      console.log('Nombre de livres:', data.data?.books ? data.data.books.length : 'undefined')
+      
       if (!res.ok) throw new Error(data.message || 'Erreur lors du chargement des livres')
-      setBooks(data.books || [])
-    } catch (e) {
-      setBooksError(e.message || 'Erreur lors du chargement des livres')
+      
+      // Adapter la structure de réponse
+      const booksArray = data.data?.books || data.books || data || []
+      console.log('Livres à afficher:', booksArray)
+      console.log('Nombre final de livres:', booksArray.length)
+      
+      setBooks(booksArray)
+    } catch (error) {
+      console.error('=== ERREUR LORS DU CHARGEMENT DES LIVRES ===')
+      console.error('Error:', error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les livres",
+        variant: "destructive"
+      })
     } finally {
       setBooksLoading(false)
     }
+  }, [toast])
+
+  const fetchBorrowings = useCallback(async () => {
+    setBorrowingsLoading(true)
+    try {
+      console.log('=== RÉCUPÉRATION DES EMPRUNTS ===')
+      const token = localStorage.getItem('token')
+      
+      if (!token) {
+        console.error('Token manquant pour récupérer les emprunts')
+        return
+      }
+
+      console.log('URL:', 'http://localhost:5000/api/borrowings')
+      
+      const res = await fetch('http://localhost:5000/api/borrowings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      console.log('Statut de la réponse emprunts:', res.status, res.statusText)
+      
+      const data = await res.json()
+      console.log('Données brutes emprunts reçues:', data)
+      
+      if (!res.ok) throw new Error(data.message || 'Erreur lors du chargement des emprunts')
+      
+      // Adapter la structure de réponse
+      const borrowingsData = data.data?.borrowings || data.borrowings || []
+      console.log('Emprunts à afficher:', borrowingsData)
+      console.log('Nombre d\'emprunts:', borrowingsData.length)
+      
+      setBorrowings(borrowingsData)
+      setBorrowingsStats(data.data?.pagination || null)
+    } catch (error) {
+      console.error('=== ERREUR LORS DU CHARGEMENT DES EMPRUNTS ===')
+      console.error('Error:', error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les emprunts",
+        variant: "destructive"
+      })
+    } finally {
+      setBorrowingsLoading(false)
+    }
+  }, [toast])
+
+  const handleAddBook = async (bookData) => {
+    try {
+      const token = localStorage.getItem('token')
+      const userStr = localStorage.getItem('user')
+      
+      console.log('=== TENTATIVE D\'AJOUT DE LIVRE ===')
+      console.log('Token présent:', !!token)
+      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'null')
+      console.log('User data:', userStr)
+      
+      if (!token) {
+        console.log('ERREUR: Aucun token trouvé')
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté",
+          variant: "destructive"
+        })
+        return
+      }
+
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        console.log('Rôle utilisateur:', user.role)
+      }
+
+      // Préparer FormData pour supporter l'upload d'image
+      const formData = new FormData()
+      Object.entries(bookData).forEach(([key, value]) => {
+        if (value !== '' && value !== undefined && value !== null) {
+          formData.append(key, String(value))
+        }
+      })
+
+      // Ajouter l'image si elle existe
+      if (coverImageFile) {
+        formData.append('cover_image', coverImageFile)
+        console.log('Image ajoutée:', coverImageFile.name)
+      }
+
+      console.log('Données à envoyer:', Object.fromEntries(formData))
+      console.log('URL de requête:', 'http://localhost:5000/api/books')
+      console.log('Headers:', { 'Authorization': `Bearer ${token.substring(0, 20)}...` })
+
+      const res = await fetch('http://localhost:5000/api/books', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Ne pas définir Content-Type pour FormData, le navigateur le fait automatiquement
+        },
+        body: formData
+      })
+
+      console.log('Réponse reçue:', res.status, res.statusText)
+      
+      const data = await res.json()
+      console.log('Données de réponse:', data)
+      
+      if (!res.ok) throw new Error(data.message)
+
+      toast({
+        title: "Succès",
+        description: "Livre ajouté avec succès"
+      })
+      
+      // Rafraîchir les données
+      fetchBooks()
+      fetchDashboardData() // Mettre à jour les statistiques
+      
+      setShowAddBookModal(false)
+      setCoverImageFile(null)
+      setCoverImagePreview(null)
+      setNewBook({
+        title: '',
+        author: '',
+        genre: '',
+        isbn: '',
+        publication_year: '',
+        total_quantity: 1,
+        description: ''
+      })
+    } catch (error) {
+      console.error('=== ERREUR LORS DE L\'AJOUT ===')
+      console.error('Error object:', error)
+      console.error('Error message:', error.message)
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de l'ajout",
+        variant: "destructive"
+      })
+    }
   }
 
-  useEffect(() => {
-    if (activeTab === 'books') fetchBooks()
-  }, [activeTab])
+  const handleEditBook = async (bookData) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté",
+          variant: "destructive"
+        })
+        return
+      }
 
-  const quickActions: QuickAction[] = [
-    {
-      icon: Plus,
-      label: "Ajouter un livre",
-      description: "Nouveau livre au catalogue",
-      action: () => setActiveTab('books'),
-      variant: 'default',
-      color: 'bg-blue-600 hover:bg-blue-700'
-    },
-    {
-      icon: Users,
-      label: "Gérer utilisateurs",
-      description: "Administration des comptes",
-      action: () => setActiveTab('users'),
-      variant: 'outline',
-      color: 'border-green-600 text-green-400 hover:bg-green-600/10'
-    },
-    {
-      icon: Star,
-      label: "Modérer avis",
-      description: `${stats?.pending_reviews || 0} en attente`,
-      action: () => setActiveTab('reviews'),
-      variant: 'outline',
-      color: 'border-yellow-600 text-yellow-400 hover:bg-yellow-600/10'
-    },
-    {
-      icon: AlertTriangle,
-      label: "Retards",
-      description: `${stats?.overdue_borrowings || 0} emprunts en retard`,
-      action: () => setActiveTab('borrowings'),
-      variant: 'destructive',
-      color: 'bg-red-600 hover:bg-red-700'
+      // Préparer FormData pour supporter l'upload d'image
+      const formData = new FormData()
+      Object.entries(bookData).forEach(([key, value]) => {
+        if (value !== '' && value !== undefined && value !== null) {
+          formData.append(key, String(value))
+        }
+      })
+
+      // Ajouter l'image si elle existe
+      if (coverImageFile) {
+        formData.append('cover_image', coverImageFile)
+      }
+
+      const res = await fetch(`http://localhost:5000/api/books/${selectedBook.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Ne pas définir Content-Type pour FormData
+        },
+        body: formData
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+
+      toast({
+        title: "Succès",
+        description: "Livre modifié avec succès"
+      })
+      
+      // Rafraîchir les données
+      fetchBooks()
+      fetchDashboardData() // Mettre à jour les statistiques
+      
+      setShowEditBookModal(false)
+      setSelectedBook(null)
+      setCoverImageFile(null)
+      setCoverImagePreview(null)
+      setNewBook({
+        title: '',
+        author: '',
+        genre: '',
+        isbn: '',
+        publication_year: '',
+        total_quantity: 1,
+        description: ''
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de la modification",
+        variant: "destructive"
+      })
     }
-  ]
+  }
+
+  const handleDeleteBook = async (bookId) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')) return
+
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!res.ok) throw new Error('Erreur lors de la suppression')
+
+      toast({
+        title: "Succès",
+        description: "Livre supprimé avec succès"
+      })
+      
+      // Rafraîchir les données
+      fetchBooks()
+      fetchDashboardData() // Mettre à jour les statistiques
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression",
+        variant: "destructive"
+      })
+    }
+  }
 
   const handleLogout = () => {
     localStorage.clear()
@@ -224,6 +504,51 @@ const AdminDashboard = () => {
       description: "Vous avez été déconnecté avec succès"
     })
     navigate('/')
+  }
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
+
+  useEffect(() => {
+    if (activeTab === 'books') {
+      fetchBooks()
+    } else if (activeTab === 'borrowings') {
+      fetchBorrowings()
+    }
+  }, [activeTab, fetchBooks, fetchBorrowings])
+
+  // Fonctions utilitaires pour les emprunts
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+  }
+
+  const getStatusBadge = (borrowing: Borrowing) => {
+    const { current_status, days_overdue } = borrowing
+    
+    if (current_status === 'overdue') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          En retard ({days_overdue} jour{days_overdue > 1 ? 's' : ''})
+        </span>
+      )
+    } else if (current_status === 'active') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          Actif
+        </span>
+      )
+    } else {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          Retourné
+        </span>
+      )
+    }
   }
 
   const StatCard = ({ icon: Icon, title, value, change, color, description }: StatCardProps) => (
@@ -260,7 +585,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -269,485 +594,984 @@ const AdminDashboard = () => {
           <div className="h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4 mx-auto animate-pulse">
             <Shield className="h-8 w-8 text-white" />
           </div>
-          <p className="text-white text-lg">Chargement du dashboard...</p>
-          <p className="text-gray-400 text-sm mt-2">Interface d'administration</p>
+          <p className="text-gray-900 text-lg">Chargement...</p>
         </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Sidebar Mobile Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Administration</h1>
+                <p className="text-sm text-gray-500">Gestion de la bibliothèque</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+              >
+                Retour au site
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="-mb-px flex space-x-8">
+            {[
+              { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
+              { id: 'books', label: 'Gestion des livres', icon: BookOpen },
+              { id: 'users', label: 'Utilisateurs', icon: Users },
+              { id: 'borrowings', label: 'Emprunts', icon: FileText }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
+              >
+                <tab.icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Vue d'ensemble */}
+        {activeTab === 'overview' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Vue d'ensemble</h2>
+              <Button
+                onClick={() => {
+                  fetchDashboardData()
+                  toast({
+                    title: "Actualisation",
+                    description: "Statistiques mises à jour"
+                  })
+                }}
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Actualiser</span>
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Users className="h-8 w-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Utilisateurs</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.total_users || 0}</p>
+                      <p className="text-xs text-gray-500">Utilisateurs inscrits</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <BookOpen className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Livres</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.total_books || 0}</p>
+                      <p className="text-xs text-gray-500">Titres dans la collection</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-yellow-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Emprunts actifs</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.active_borrowings || 0}</p>
+                      <p className="text-xs text-gray-500">Livres actuellement empruntés</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Retards</p>
+                      <p className="text-2xl font-bold text-gray-900">{stats?.overdue_borrowings || 0}</p>
+                      <p className="text-xs text-gray-500">Emprunts en retard</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Gestion des livres */}
+        {activeTab === 'books' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Gestion des livres</h2>
+              <Button
+                onClick={() => setShowAddBookModal(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un livre
+              </Button>
+            </div>
+
+            {booksLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Chargement des livres...</p>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Livre
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Genre
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Année
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Quantité
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {(() => {
+                         console.log('=== AFFICHAGE DES LIVRES ===')
+                         console.log('books array:', books)
+                         console.log('books.length:', books.length)
+                         return books.map((book, index) => {
+                          console.log(`Livre ${index}:`, book)
+                          return (
+                          <tr key={book.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{book.title}</div>
+                                <div className="text-sm text-gray-500">{book.author}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {book.genre}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {book.publication_year}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {book.available_quantity || 0}/{book.total_quantity || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedBook(book)
+                                  setNewBook({
+                                    title: book.title || '',
+                                    author: book.author || '',
+                                    genre: book.genre || '',
+                                    isbn: book.isbn || '',
+                                    publication_year: book.publication_year || '',
+                                    total_quantity: book.total_quantity || 1,
+                                    description: book.description || ''
+                                  })
+                                  setCoverImageFile(null)
+                                  setCoverImagePreview(null)
+                                  setShowEditBookModal(true)
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Modifier
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteBook(book.id)}
+                              >
+                                Supprimer
+                              </Button>
+                            </td>
+                          </tr>
+                          )
+                        })
+                        })()}
+                        {books.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                              {booksLoading ? 'Chargement...' : 'Aucun livre trouvé. Ajoutez votre premier livre !'}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Autres onglets */}
+        {activeTab === 'users' && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des utilisateurs</h2>
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-gray-600">Fonctionnalité en développement...</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'borrowings' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Gestion des emprunts</h2>
+              <Button
+                onClick={() => {
+                  fetchBorrowings()
+                  toast({
+                    title: "Actualisation",
+                    description: "Liste des emprunts mise à jour"
+                  })
+                }}
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Actualiser</span>
+              </Button>
+            </div>
+
+            {/* Statistiques rapides */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total emprunts</p>
+                      <p className="text-2xl font-bold text-gray-900">{borrowingsStats?.total || borrowings.length}</p>
+                      <p className="text-xs text-gray-500">Tous les emprunts</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Clock className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Emprunts actifs</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {borrowings.filter(b => b.current_status === 'active').length}
+                      </p>
+                      <p className="text-xs text-gray-500">En cours</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">En retard</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {borrowings.filter(b => b.current_status === 'overdue').length}
+                      </p>
+                      <p className="text-xs text-gray-500">Dépassent la date limite</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {borrowingsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Chargement des emprunts...</p>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Utilisateur
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Livre
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date d'emprunt
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date limite
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date de retour
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {(() => {
+                         console.log('=== AFFICHAGE DES EMPRUNTS ===')
+                         console.log('borrowings array:', borrowings)
+                         console.log('borrowings.length:', borrowings.length)
+                         return borrowings.map((borrowing, index) => {
+                          console.log(`Emprunt ${index}:`, borrowing)
+                          return (
+                          <tr key={borrowing.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{borrowing.user_name}</div>
+                                <div className="text-sm text-gray-500">{borrowing.user_email}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{borrowing.title}</div>
+                                <div className="text-sm text-gray-500">par {borrowing.author}</div>
+                                {borrowing.isbn && (
+                                  <div className="text-xs text-gray-400">ISBN: {borrowing.isbn}</div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {formatDate(borrowing.borrowed_at)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {formatDate(borrowing.due_date)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {getStatusBadge(borrowing)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {borrowing.returned_at ? formatDate(borrowing.returned_at) : '-'}
+                            </td>
+                          </tr>
+                          )
+                        })
+                        })()}
+                        {borrowings.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                              {borrowingsLoading ? 'Chargement...' : 'Aucun emprunt trouvé.'}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pagination (si nécessaire) */}
+            {borrowingsStats && borrowingsStats.totalPages > 1 && (
+              <div className="mt-6 flex justify-center">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-700">
+                    Page {borrowingsStats.page} sur {borrowingsStats.totalPages} 
+                    ({borrowingsStats.total} emprunts au total)
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Modal d'ajout de livre */}
+      {showAddBookModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Ajouter un livre</h3>
+              <button
+                onClick={() => {
+                  setShowAddBookModal(false)
+                  setCoverImageFile(null)
+                  setCoverImagePreview(null)
+                  setNewBook({
+                    title: '',
+                    author: '',
+                    genre: '',
+                    isbn: '',
+                    publication_year: '',
+                    total_quantity: 1,
+                    description: ''
+                  })
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleAddBook(newBook)
+              }}
+              className="space-y-6"
+            >
+              {/* Ligne 1: Informations principales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Titre <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.title}
+                    onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
+                    placeholder="Titre du livre"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 200 caractères</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Auteur <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.author}
+                    onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
+                    placeholder="Nom de l'auteur"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 150 caractères</p>
+                </div>
+              </div>
+
+              {/* Ligne 2: Genre et ISBN */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Genre
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.genre}
+                    onChange={(e) => setNewBook({ ...newBook, genre: e.target.value })}
+                    placeholder="Ex: Fiction, Science-fiction, Histoire..."
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 50 caractères (optionnel)</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ISBN
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.isbn}
+                    onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value })}
+                    placeholder="Ex: 978-2-123456-78-9"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 20 caractères (optionnel)</p>
+                </div>
+              </div>
+
+              {/* Ligne 3: Année et Quantité */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Année de publication <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={newBook.publication_year}
+                    onChange={(e) => setNewBook({ ...newBook, publication_year: e.target.value })}
+                    placeholder="Ex: 2024"
+                    min="1901"
+                    max="2155"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Entre 1901 et 2155</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantité totale <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={newBook.total_quantity}
+                    onChange={(e) => setNewBook({ ...newBook, total_quantity: parseInt(e.target.value) })}
+                    placeholder="Ex: 5"
+                    min="0"
+                    max="1000"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Entre 0 et 1000 exemplaires</p>
+                </div>
+              </div>
+
+              {/* Ligne 4: Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={4}
+                  value={newBook.description}
+                  onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
+                  placeholder="Description du livre, résumé..."
+                  maxLength={5000}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum 5000 caractères (optionnel) - {newBook.description.length}/5000
+                </p>
+              </div>
+
+              {/* Image de couverture */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image de couverture
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setCoverImageFile(file)
+                          const reader = new FileReader()
+                          reader.onload = (e) => {
+                            setCoverImagePreview(e.target?.result as string)
+                          }
+                          reader.readAsDataURL(file)
+                        }
+                      }}
+                      className="hidden"
+                      id="cover-image-upload"
+                    />
+                    <label
+                      htmlFor="cover-image-upload"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      {coverImagePreview ? (
+                        <div className="mb-4">
+                          <img
+                            src={coverImagePreview}
+                            alt="Aperçu"
+                            className="h-32 w-24 object-cover rounded-lg shadow-md"
+                          />
+                        </div>
+                      ) : (
+                        <div className="mb-4">
+                          <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                          >
+                            <path
+                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                        {coverImagePreview ? 'Changer l\'image' : 'Choisir une image'}
+                      </span>
+                      <span className="text-xs text-gray-500 mt-1">
+                        PNG, JPG, JPEG jusqu'à 5MB
+                      </span>
+                    </label>
+                    {coverImagePreview && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCoverImageFile(null)
+                          setCoverImagePreview(null)
+                        }}
+                        className="mt-2 text-sm text-red-600 hover:text-red-500"
+                      >
+                        Supprimer l'image
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Optionnel - Format recommandé: 300x450px</p>
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddBookModal(false)
+                    setCoverImageFile(null)
+                    setCoverImagePreview(null)
+                    setNewBook({
+                      title: '',
+                      author: '',
+                      genre: '',
+                      isbn: '',
+                      publication_year: '',
+                      total_quantity: 1,
+                      description: ''
+                    })
+                  }}
+                  className="px-6 py-2"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-2"
+                >
+                  Ajouter le livre
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Sidebar */}
-      <motion.div
-        initial={{ x: -300 }}
-        animate={{ x: sidebarOpen ? 0 : -300 }}
-        className="fixed left-0 top-0 z-50 h-full w-64 bg-gray-900/95 backdrop-blur-sm border-r border-gray-700 lg:translate-x-0 lg:static lg:inset-0"
-      >
-        <div className="flex h-full flex-col">
-          {/* Header */}
-          <div className="flex h-16 items-center justify-between px-6 border-b border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-white font-semibold">Admin 2iE</h1>
-                <p className="text-gray-400 text-xs">Bibliothèque</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-gray-400 hover:text-white"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {[
-              { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-              { id: 'books', label: 'Livres', icon: BookOpen },
-              { id: 'users', label: 'Utilisateurs', icon: Users },
-              { id: 'borrowings', label: 'Emprunts', icon: FileText },
-              { id: 'reviews', label: 'Avis', icon: Star },
-              { id: 'notifications', label: 'Notifications', icon: Bell },
-              { id: 'settings', label: 'Paramètres', icon: Settings }
-            ].map((item) => (
-              <Button
-                key={item.id}
-                variant={activeTab === item.id ? 'secondary' : 'ghost'}
-                className={`w-full justify-start ${
-                  activeTab === item.id
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-800'
-                }`}
+      {/* Modal de modification de livre */}
+      {showEditBookModal && selectedBook && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Modifier le livre</h3>
+              <button
                 onClick={() => {
-                  setActiveTab(item.id)
-                  setSidebarOpen(false)
+                  setShowEditBookModal(false)
+                  setSelectedBook(null)
+                  setCoverImageFile(null)
+                  setCoverImagePreview(null)
+                  setNewBook({
+                    title: '',
+                    author: '',
+                    genre: '',
+                    isbn: '',
+                    publication_year: '',
+                    total_quantity: 1,
+                    description: ''
+                  })
                 }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
               >
-                <item.icon className="h-4 w-4 mr-3" />
-                {item.label}
-              </Button>
-            ))}
-          </nav>
-
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-700">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-gray-300 hover:text-white hover:bg-red-600/20"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4 mr-3" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Main Content */}
-      <div className="lg:pl-64">
-        {/* Top Bar */}
-        <div className="sticky top-0 z-30 flex h-16 items-center justify-between bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 px-6">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-400 hover:text-white"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-semibold text-white">
-                {activeTab === 'dashboard' && 'Dashboard'}
-                {activeTab === 'books' && 'Gestion des Livres'}
-                {activeTab === 'users' && 'Gestion des Utilisateurs'}
-                {activeTab === 'borrowings' && 'Gestion des Emprunts'}
-                {activeTab === 'reviews' && 'Modération des Avis'}
-                {activeTab === 'notifications' && 'Notifications'}
-                {activeTab === 'settings' && 'Paramètres'}
-              </h1>
-              <p className="text-gray-400 text-sm">Interface d'administration</p>
+                ×
+              </button>
             </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher..."
-                className="pl-10 bg-gray-800 border-gray-600 text-white w-64"
-              />
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={fetchDashboardData}
-              className="text-gray-400 hover:text-white"
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleEditBook(newBook)
+              }}
+              className="space-y-6"
             >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white"
-              >
-                <Bell className="h-4 w-4" />
-              </Button>
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsContent value="dashboard" className="space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                  icon={Users}
-                  title="Utilisateurs Total"
-                  value={stats?.total_users || 0}
-                  change={12}
-                  color="bg-blue-600"
-                  description={`+${stats?.new_users_this_month} ce mois`}
-                />
-                <StatCard
-                  icon={BookOpen}
-                  title="Livres au Catalogue"
-                  value={stats?.total_books || 0}
-                  color="bg-green-600"
-                  description="Collection complète"
-                />
-                <StatCard
-                  icon={FileText}
-                  title="Emprunts Actifs"
-                  value={stats?.active_borrowings || 0}
-                  color="bg-yellow-600"
-                  description={`${stats?.books_borrowed_this_month} ce mois`}
-                />
-                <StatCard
-                  icon={AlertTriangle}
-                  title="Retards"
-                  value={stats?.overdue_borrowings || 0}
-                  color="bg-red-600"
-                  description="Nécessitent attention"
-                />
-              </div>
-
-              {/* Secondary Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard
-                  icon={Star}
-                  title="Avis en Attente"
-                  value={stats?.pending_reviews || 0}
-                  color="bg-purple-600"
-                  description="À modérer"
-                />
-                <StatCard
-                  icon={TrendingUp}
-                  title="Note Moyenne"
-                  value={stats?.average_rating?.toFixed(1) || '0.0'}
-                  color="bg-indigo-600"
-                  description={`${stats?.total_reviews} avis total`}
-                />
-                <StatCard
-                  icon={Activity}
-                  title="Total Emprunts"
-                  value={stats?.total_borrowings || 0}
-                  color="bg-pink-600"
-                  description="Historique complet"
-                />
-              </div>
-
-              {/* Quick Actions */}
-              <Card className="bg-gray-800/50 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <Settings className="h-5 w-5 mr-2" />
-                    Actions Rapides
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {quickActions.map((action, index) => (
-                      <motion.div
-                        key={index}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Button
-                          variant={action.variant}
-                          className={`w-full h-auto p-4 flex-col space-y-2 ${action.color}`}
-                          onClick={action.action}
-                        >
-                          <action.icon className="h-6 w-6" />
-                          <div className="text-center">
-                            <div className="font-medium">{action.label}</div>
-                            <div className="text-xs opacity-80">{action.description}</div>
-                          </div>
-                        </Button>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Activities */}
-              <Card className="bg-gray-800/50 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <Clock className="h-5 w-5 mr-2" />
-                    Activités Récentes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentActivities.map((activity) => (
-                      <motion.div
-                        key={activity.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center space-x-4 p-3 rounded-lg bg-gray-700/30 hover:bg-gray-700/50 transition-colors"
-                      >
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                          activity.type === 'borrowing' ? 'bg-blue-600' :
-                          activity.type === 'return' ? 'bg-green-600' :
-                          activity.type === 'user_registration' ? 'bg-purple-600' :
-                          'bg-yellow-600'
-                        }`}>
-                          {activity.type === 'borrowing' && <FileText className="h-4 w-4 text-white" />}
-                          {activity.type === 'return' && <CheckCircle className="h-4 w-4 text-white" />}
-                          {activity.type === 'user_registration' && <Users className="h-4 w-4 text-white" />}
-                          {activity.type === 'review_added' && <Star className="h-4 w-4 text-white" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-white text-sm">{activity.message}</p>
-                          <p className="text-gray-400 text-xs">
-                            {new Date(activity.timestamp).toLocaleString('fr-FR')}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="books">
-              <div className="text-center py-6">
-                <h3 className="text-xl font-semibold text-white mb-2">Gestion des Livres</h3>
-                <Button className="bg-blue-600 hover:bg-blue-700 mb-4" onClick={() => setShowAddBookModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Ajouter un livre
-                </Button>
-                {booksLoading && <div className="text-white">Chargement des livres...</div>}
-                {booksError && <div className="text-red-500">{booksError}</div>}
-                <div className="overflow-x-auto mt-4">
-                  <table className="min-w-full bg-gray-800 text-white rounded-lg">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2">Titre</th>
-                        <th className="px-4 py-2">Auteur</th>
-                        <th className="px-4 py-2">Genre</th>
-                        <th className="px-4 py-2">Année</th>
-                        <th className="px-4 py-2">Quantité</th>
-                        <th className="px-4 py-2">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {books.map((book) => (
-                        <tr key={book.id} className="border-b border-gray-700">
-                          <td className="px-4 py-2">{book.title}</td>
-                          <td className="px-4 py-2">{book.author}</td>
-                          <td className="px-4 py-2">{book.genre}</td>
-                          <td className="px-4 py-2">{book.publication_year}</td>
-                          <td className="px-4 py-2">{book.total_quantity}</td>
-                          <td className="px-4 py-2 flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => {/* à compléter étape suivante */}}>
-                              Modifier
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => {/* à compléter étape suivante */}}>
-                              Supprimer
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              {/* Ligne 1: Informations principales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Titre <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.title}
+                    onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
+                    placeholder="Titre du livre"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 200 caractères</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Auteur <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.author}
+                    onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
+                    placeholder="Nom de l'auteur"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 150 caractères</p>
                 </div>
               </div>
-              {/* Modale d'ajout de livre */}
-              <Dialog open={showAddBookModal} onOpenChange={setShowAddBookModal}>
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
-                  <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl shadow-2xl p-8 max-w-md w-full relative border border-gray-700 max-h-[90vh] overflow-y-auto">
-                    <button className="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl transition" onClick={() => {
-                      setShowAddBookModal(false)
-                      setAddBookError('')
-                      setAddBookSuccess('')
-                      setNewBook({ title: '', author: '', genre: '', isbn: '', publication_year: '', total_quantity: 1, description: '' })
-                      setCoverImageFile(null)
-                      setCoverImagePreview(null)
-                    }}>✕</button>
-                    <div className="flex flex-col items-center mb-6">
-                      <div className="bg-blue-600 rounded-full p-3 mb-2 shadow-lg">
-                        <Plus className="h-7 w-7 text-white" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-white mb-1">Ajouter un livre</h2>
-                      <p className="text-gray-400 text-sm">Remplissez les informations du livre à ajouter</p>
-                    </div>
-                    <form
-                      onSubmit={async e => {
-                        e.preventDefault()
-                        setAddBookLoading(true)
-                        setAddBookError('')
-                        setAddBookSuccess('')
-                        if (!newBook.title || !newBook.author || !newBook.genre || !newBook.isbn || !newBook.publication_year) {
-                          setAddBookError('Tous les champs obligatoires doivent être remplis.')
-                          setAddBookLoading(false)
-                          return
-                        }
-                        try {
-                          const token = localStorage.getItem('token')
-                          if (!token) {
-                            setAddBookError('Vous devez être connecté en tant qu\'admin.')
-                            setAddBookLoading(false)
-                            return
+
+              {/* Ligne 2: Genre et ISBN */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Genre
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.genre}
+                    onChange={(e) => setNewBook({ ...newBook, genre: e.target.value })}
+                    placeholder="Ex: Fiction, Science-fiction, Histoire..."
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 50 caractères (optionnel)</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ISBN
+                  </label>
+                  <Input
+                    type="text"
+                    value={newBook.isbn}
+                    onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value })}
+                    placeholder="Ex: 978-2-123456-78-9"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Maximum 20 caractères (optionnel)</p>
+                </div>
+              </div>
+
+              {/* Ligne 3: Année et Quantité */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Année de publication <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={newBook.publication_year}
+                    onChange={(e) => setNewBook({ ...newBook, publication_year: e.target.value })}
+                    placeholder="Ex: 2024"
+                    min="1901"
+                    max="2155"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Entre 1901 et 2155</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantité totale <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    value={newBook.total_quantity}
+                    onChange={(e) => setNewBook({ ...newBook, total_quantity: parseInt(e.target.value) })}
+                    placeholder="Ex: 5"
+                    min="0"
+                    max="1000"
+                    required
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Entre 0 et 1000 exemplaires</p>
+                </div>
+              </div>
+
+              {/* Ligne 4: Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={4}
+                  value={newBook.description || ''}
+                  onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
+                  placeholder="Description du livre, résumé..."
+                  maxLength={5000}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum 5000 caractères (optionnel) - {(newBook.description || '').length}/5000
+                </p>
+              </div>
+
+              {/* Image de couverture */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image de couverture
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setCoverImageFile(file)
+                          const reader = new FileReader()
+                          reader.onload = (e) => {
+                            setCoverImagePreview(e.target?.result as string)
                           }
-                          // Préparer le FormData
-                          const formData = new FormData()
-                          Object.entries(newBook).forEach(([key, value]) => {
-                            if (value !== '' && value !== undefined && value !== null) {
-                              if (key === 'publication_year' || key === 'total_quantity') {
-                                formData.append(key, String(value))
-                              } else {
-                                formData.append(key, value as string)
-                              }
-                            }
-                          })
-                          if (coverImageFile) {
-                            formData.append('cover_image', coverImageFile)
-                          }
-                          const res = await fetch('http://localhost:5000/api/books', {
-                            method: 'POST',
-                            headers: {
-                              Authorization: `Bearer ${token}`
-                            },
-                            body: formData
-                          })
-                          const data = await res.json()
-                          if (!res.ok || !data.success) {
-                            let errorMsg = data.message || data.error || 'Erreur lors de l\'ajout du livre'
-                            if (data.errors && Array.isArray(data.errors)) {
-                              errorMsg += '\n' + data.errors.map((err: { msg: string }) => `- ${err.msg}`).join('\n')
-                            }
-                            setAddBookError(errorMsg)
-                            setAddBookLoading(false)
-                            return
-                          }
-                          setAddBookSuccess('Livre ajouté avec succès !')
-                          setTimeout(() => setShowAddBookModal(false), 1200)
-                          setNewBook({ title: '', author: '', genre: '', isbn: '', publication_year: '', total_quantity: 1, description: '' })
-                          setCoverImageFile(null)
-                          setCoverImagePreview(null)
-                        } catch (e) {
-                          setAddBookError(e instanceof Error ? e.message : 'Erreur lors de l\'ajout du livre')
-                        } finally {
-                          setAddBookLoading(false)
+                          reader.readAsDataURL(file)
                         }
                       }}
-                      encType="multipart/form-data"
-                      className="space-y-4"
+                      className="hidden"
+                      id="edit-cover-image-upload"
+                    />
+                    <label
+                      htmlFor="edit-cover-image-upload"
+                      className="cursor-pointer flex flex-col items-center"
                     >
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-200 mb-1">Titre</label>
-                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.title} onChange={e => setNewBook({ ...newBook, title: e.target.value })} required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-200 mb-1">Auteur</label>
-                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.author} onChange={e => setNewBook({ ...newBook, author: e.target.value })} required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-200 mb-1">Genre</label>
-                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.genre} onChange={e => setNewBook({ ...newBook, genre: e.target.value })} required />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-200 mb-1">ISBN</label>
-                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.isbn} onChange={e => setNewBook({ ...newBook, isbn: e.target.value })} required />
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <label className="block text-sm font-semibold text-gray-200 mb-1">Année</label>
-                          <input type="number" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.publication_year} onChange={e => setNewBook({ ...newBook, publication_year: e.target.value })} required min="1000" max="2100" />
+                      {coverImagePreview || selectedBook.cover_image ? (
+                        <div className="mb-4">
+                          <img
+                            src={coverImagePreview || selectedBook.cover_image}
+                            alt="Aperçu"
+                            className="h-32 w-24 object-cover rounded-lg shadow-md"
+                          />
                         </div>
-                        <div className="flex-1">
-                          <label className="block text-sm font-semibold text-gray-200 mb-1">Quantité</label>
-                          <input type="number" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.total_quantity} onChange={e => setNewBook({ ...newBook, total_quantity: Number(e.target.value) })} required min="1" />
+                      ) : (
+                        <div className="mb-4">
+                          <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                          >
+                            <path
+                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-200 mb-1">Description <span className="text-gray-400">(optionnel)</span></label>
-                        <textarea className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.description} onChange={e => setNewBook({ ...newBook, description: e.target.value })} rows={2} />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-200 mb-1">Image de couverture <span className="text-gray-400">(optionnel)</span></label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                          onChange={e => {
-                            const file = e.target.files?.[0] || null
-                            setCoverImageFile(file)
-                            if (file) {
-                              const reader = new FileReader()
-                              reader.onloadend = () => setCoverImagePreview(reader.result as string)
-                              reader.readAsDataURL(file)
-                            } else {
-                              setCoverImagePreview(null)
-                            }
-                          }}
-                        />
-                        {coverImagePreview && (
-                          <div className="mt-3 flex flex-col items-center">
-                            <img src={coverImagePreview} alt="Aperçu couverture" className="rounded-xl shadow-lg border-2 border-blue-600 w-32 h-40 object-cover" />
-                            <span className="text-xs text-gray-400 mt-1">Aperçu</span>
-                          </div>
-                        )}
-                      </div>
-                      {addBookError && <div className="text-red-500 bg-red-100 border border-red-400 rounded-lg px-3 py-2 text-sm whitespace-pre-line">{addBookError}</div>}
-                      {addBookSuccess && <div className="text-green-500 bg-green-100 border border-green-400 rounded-lg px-3 py-2 text-sm">{addBookSuccess}</div>}
-                      <div className="flex justify-center mt-6">
-                        <Button
-                          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-semibold py-3 px-10 rounded-2xl shadow-xl hover:scale-105 hover:from-green-500 hover:to-blue-700 transition-all text-lg disabled:opacity-60 border-2 border-blue-700"
-                          type="submit"
-                          disabled={addBookLoading}
-                        >
-                          <CheckCircle className="h-5 w-5 text-white" />
-                          {addBookLoading ? 'Ajout en cours...' : 'Valider'}
-                        </Button>
-                      </div>
-                    </form>
+                      )}
+                      <span className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                        {(coverImagePreview || selectedBook.cover_image) ? 'Changer l\'image' : 'Choisir une image'}
+                      </span>
+                      <span className="text-xs text-gray-500 mt-1">
+                        PNG, JPG, JPEG jusqu'à 5MB
+                      </span>
+                    </label>
+                    {(coverImagePreview || selectedBook.cover_image) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCoverImageFile(null)
+                          setCoverImagePreview(null)
+                        }}
+                        className="mt-2 text-sm text-red-600 hover:text-red-500"
+                      >
+                        {coverImagePreview ? 'Supprimer la nouvelle image' : 'Supprimer l\'image actuelle'}
+                      </button>
+                    )}
                   </div>
                 </div>
-              </Dialog>
-            </TabsContent>
-          </Tabs>
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedBook.cover_image && !coverImagePreview 
+                    ? 'Image actuelle - Choisissez une nouvelle image pour la remplacer' 
+                    : 'Optionnel - Format recommandé: 300x450px'
+                  }
+                </p>
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditBookModal(false)
+                    setSelectedBook(null)
+                    setCoverImageFile(null)
+                    setCoverImagePreview(null)
+                    setNewBook({
+                      title: '',
+                      author: '',
+                      genre: '',
+                      isbn: '',
+                      publication_year: '',
+                      total_quantity: 1,
+                      description: ''
+                    })
+                  }}
+                  className="px-6 py-2"
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 px-8 py-2"
+                >
+                  Modifier le livre
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

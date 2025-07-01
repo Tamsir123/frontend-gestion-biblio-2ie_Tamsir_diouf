@@ -49,10 +49,15 @@ const Login = () => {
         localStorage.setItem('token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         
+        console.log('Utilisateur connecté:', data.data.user);
+        console.log('Rôle de l\'utilisateur:', data.data.user.role);
+        
         // Redirection basée sur le rôle
         if (data.data.user.role === 'admin') {
+          console.log('Redirection vers /admin...');
           navigate('/admin');
         } else {
+          console.log('Redirection vers / (accueil)...');
           navigate('/');
         }
       } else {

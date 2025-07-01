@@ -13,6 +13,8 @@ import BookDetails from "./pages/BookDetails";
 import MesEmprunts from "./pages/MesEmprunts";
 import Profil from "./pages/Profil";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminBooks from "./pages/AdminBooks";
+import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
 import FireCatProject from "./pages/FireCatProject";
 import SportRetailProject from "./pages/SportRetailProject";
@@ -45,8 +47,17 @@ const App = () => {
             <Route path="/mes-emprunts" element={<MesEmprunts />} />
             <Route path="/profil" element={<Profil />} />
             
-            {/* Route Admin simple */}
-            <Route path="/admin" element={<AdminDashboard />} />
+            {/* Routes Admin protégées */}
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } />
+            <Route path="/admin/books" element={
+              <AdminRoute>
+                <AdminBooks />
+              </AdminRoute>
+            } />
             
             <Route path="/projects/firecat" element={<FireCatProject />} />
             <Route path="/projects/sport-retail" element={<SportRetailProject />} />

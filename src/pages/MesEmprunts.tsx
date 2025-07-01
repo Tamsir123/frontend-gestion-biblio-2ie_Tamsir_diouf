@@ -54,7 +54,7 @@ const MesEmprunts = () => {
       if (response.ok) {
         const data = await response.json()
         // Adapter la structure des données backend vers frontend
-        const borrowingsData = (data.data?.borrowings || []).map((borrowing: any) => ({
+        const borrowingsData = (data.data?.borrowings || []).map((borrowing: Record<string, unknown>) => ({
           ...borrowing,
           // Utiliser les noms des champs tels qu'ils viennent du backend
         }))
@@ -132,12 +132,28 @@ const MesEmprunts = () => {
     setRenewingId(borrowingId)
     try {
       const token = localStorage.getItem('token')
+      if (!token) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté pour renouveler un emprunt",
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Calculer une nouvelle date d'échéance (+ 14 jours)
+      const newDueDate = new Date()
+      newDueDate.setDate(newDueDate.getDate() + 14)
+      
       const response = await fetch(`http://localhost:5000/api/borrowings/${borrowingId}/renew`, {
-        method: 'POST',
+        method: 'PUT', // Correction: PUT au lieu de POST
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          new_due_date: newDueDate.toISOString().split('T')[0] // Format YYYY-MM-DD
+        })
       })
 
       if (response.ok) {
@@ -155,22 +171,12 @@ const MesEmprunts = () => {
         })
       }
     } catch (error) {
-      // Simulation du renouvellement pour la démo
+      console.error('Erreur lors du renouvellement:', error)
       toast({
-        title: "Renouvellement réussi",
-        description: "Votre emprunt a été renouvelé avec succès",
+        title: "Erreur",
+        description: "Une erreur est survenue lors du renouvellement",
+        variant: "destructive"
       })
-      
-      // Mise à jour locale pour la démo
-      setBorrowings(prev => prev.map(borrowing => 
-        borrowing.id === borrowingId 
-          ? { 
-              ...borrowing, 
-              renewal_count: borrowing.renewal_count + 1,
-              due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-            }
-          : borrowing
-      ))
     } finally {
       setRenewingId(null)
     }
@@ -180,12 +186,24 @@ const MesEmprunts = () => {
     setReturningId(borrowingId)
     try {
       const token = localStorage.getItem('token')
+      if (!token) {
+        toast({
+          title: "Erreur",
+          description: "Vous devez être connecté pour retourner un livre",
+          variant: "destructive"
+        })
+        return
+      }
+
       const response = await fetch(`http://localhost:5000/api/borrowings/${borrowingId}/return`, {
-        method: 'POST',
+        method: 'PUT', // Correction: PUT au lieu de POST
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          notes: "Retour effectué via l'interface utilisateur"
+        })
       })
 
       if (response.ok) {
@@ -203,22 +221,12 @@ const MesEmprunts = () => {
         })
       }
     } catch (error) {
-      // Simulation du retour pour la démo
+      console.error('Erreur lors du retour:', error)
       toast({
-        title: "Retour confirmé",
-        description: "Le livre a été retourné avec succès",
+        title: "Erreur",
+        description: "Une erreur est survenue lors du retour du livre",
+        variant: "destructive"
       })
-      
-      // Mise à jour locale pour la démo
-      setBorrowings(prev => prev.map(borrowing => 
-        borrowing.id === borrowingId 
-          ? { 
-              ...borrowing, 
-              status: 'returned' as const,
-              returned_at: new Date().toISOString()
-            }
-          : borrowing
-      ))
     } finally {
       setReturningId(null)
     }
@@ -437,8 +445,8 @@ const MesEmprunts = () => {
                               <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
                                 {borrowing.title}
                               </h3>
-                              <p className="text-lg text-gray-600 mb-1">{borrowing.book_author}</p>
-                              <p className="text-sm text-gray-500">ISBN: {borrowing.book_isbn}</p>
+                              <p className="text-lg text-gray-600 mb-1">{borrowing.author}</p>
+                              <p className="text-sm text-gray-500">ISBN: {borrowing.isbn}</p>
                             </div>
                             <div className="flex items-center gap-3">
                               {getStatusBadge(borrowing.status)}
@@ -594,7 +602,7 @@ const MesEmprunts = () => {
                       />
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-1">{borrowing.title}</h3>
-                        <p className="text-gray-600 mb-2">{borrowing.book_author}</p>
+                        <p className="text-gray-600 mb-2">{borrowing.author}</p>
                         <div className="flex items-center text-sm text-gray-500">
                           <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
                           Retourné le {formatDate(borrowing.returned_at!)}

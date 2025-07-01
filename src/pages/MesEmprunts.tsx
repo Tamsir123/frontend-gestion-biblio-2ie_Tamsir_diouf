@@ -37,6 +37,11 @@ const MesEmprunts = () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
+      if (!token) {
+        setBorrowings([])
+        console.error('Aucun token trouvé. Veuillez vous reconnecter.')
+        return
+      }
       const response = await fetch('http://localhost:5000/api/borrowings/my-borrowings', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -46,6 +51,9 @@ const MesEmprunts = () => {
       if (response.ok) {
         const data = await response.json()
         setBorrowings(data.borrowings || [])
+      } else if (response.status === 401) {
+        setBorrowings([])
+        console.error('Non autorisé. Veuillez vous reconnecter.')
       } else {
         console.error('Erreur lors de la récupération des emprunts')
       }
@@ -237,7 +245,14 @@ const MesEmprunts = () => {
     })
   }
 
-  const getBookImage = (bookId: number) => {
+  // Nouvelle version : on attend que l'API renvoie book_cover_image (string | undefined)
+  const getBookImage = (bookId: number, coverImage?: string) => {
+    if (coverImage) {
+      if (coverImage.startsWith('/')) {
+        return `http://localhost:5000${coverImage}`
+      }
+      return coverImage
+    }
     const bookImages: { [key: number]: string } = {
       1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=400&fit=crop',
       3: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=300&h=400&fit=crop',
@@ -404,7 +419,7 @@ const MesEmprunts = () => {
                       {/* Header avec info du livre */}
                       <div className="flex items-start gap-6 mb-6">
                         <img
-                          src={getBookImage(borrowing.book_id)}
+                          src={getBookImage(borrowing.book_id, (borrowing as { book_cover_image?: string }).book_cover_image)}
                           alt={borrowing.book_title}
                           className="w-24 h-32 object-cover rounded-2xl shadow-md"
                         />
@@ -565,7 +580,7 @@ const MesEmprunts = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-6">
                       <img
-                        src={getBookImage(borrowing.book_id)}
+                        src={getBookImage(borrowing.book_id, (borrowing as { book_cover_image?: string }).book_cover_image)}
                         alt={borrowing.book_title}
                         className="w-16 h-20 object-cover rounded-2xl shadow-sm"
                       />

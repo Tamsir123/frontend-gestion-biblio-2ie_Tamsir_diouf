@@ -43,7 +43,7 @@ const Catalogue = () => {
   const [borrowSuccess, setBorrowSuccess] = useState('')
   const [borrowStartDate, setBorrowStartDate] = useState<string>('')
   const [borrowEndDate, setBorrowEndDate] = useState<string>('')
-  const [borrowComment, setBorrowComment] = useState<string>('')
+  const [comments, setComments] = useState<string>('')
 
   // Animation variants
   const containerVariants = {
@@ -512,7 +512,7 @@ const Catalogue = () => {
                             const end = new Date(today)
                             end.setDate(end.getDate() + 7)
                             setBorrowEndDate(end.toISOString().split('T')[0])
-                            setBorrowComment('')
+                            setComments('')
                           }
                         }}
                       >
@@ -541,7 +541,7 @@ const Catalogue = () => {
                 setBorrowSuccess('')
                 setBorrowStartDate('')
                 setBorrowEndDate('')
-                setBorrowComment('')
+                setComments('')
               }}>
                 <X className="w-5 h-5" />
               </button>
@@ -577,8 +577,8 @@ const Catalogue = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Commentaire (optionnel)</label>
                 <textarea
                   className="border rounded px-2 py-1 w-full"
-                  value={borrowComment}
-                  onChange={e => setBorrowComment(e.target.value)}
+                  value={comments}
+                  onChange={e => setComments(e.target.value)}
                   rows={2}
                   placeholder="Motif, précision, etc."
                 />
@@ -604,21 +604,29 @@ const Catalogue = () => {
                       setBorrowLoading(false)
                       return
                     }
+                    const body = {
+                      book_id: selectedBook.id,
+                      start_date: borrowStartDate,
+                      due_date: borrowEndDate,
+                      comment_text: comments || ''
+                    }
+                    console.log('POST /api/borrowings body:', body)
                     const res = await fetch('http://localhost:5000/api/borrowings', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${token}`
                       },
-                      body: JSON.stringify({
-                        bookId: selectedBook.id,
-                        startDate: borrowStartDate,
-                        endDate: borrowEndDate,
-                        comment: borrowComment
-                      })
+                      body: JSON.stringify(body)
                     })
                     const data = await res.json()
-                    if (!res.ok || !data.success) throw new Error(data.message || 'Erreur lors de l\'emprunt')
+                    if (!res.ok || !data.success) {
+                      // Affiche tout le contenu de la réponse d'erreur
+                      console.error('Erreur backend:', JSON.stringify(data))
+                      // Affiche le message d'erreur le plus explicite possible dans l'UI
+                      setBorrowError(data.message || data.error || data.detail || JSON.stringify(data) || 'Erreur lors de l\'emprunt')
+                      throw new Error(data.message || data.error || data.detail || 'Erreur lors de l\'emprunt')
+                    }
                     setBorrowSuccess('Emprunt enregistré !')
                     setTimeout(() => setShowBorrowModal(false), 1200)
                     fetchBooks() // refresh catalogue

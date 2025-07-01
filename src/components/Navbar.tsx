@@ -79,33 +79,6 @@ const Navbar = () => {
             </Link>
           </div>
           
-          {/* Barre de recherche centrale - Desktop uniquement */}
-          <div className="hidden lg:flex flex-1 max-w-lg mx-8">
-            <form onSubmit={handleSearch} className="relative w-full">
-              <Input
-                type="text"
-                placeholder="Rechercher des livres, auteurs, sujets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn("w-full pl-10 pr-4 py-2 rounded-full border-2 transition-all", 
-                  isScrolled 
-                    ? "bg-gray-50 border-gray-200 focus:border-blue-500 text-gray-800" 
-                    : "bg-white/90 border-white/50 focus:border-white text-gray-800 placeholder:text-gray-600"
-                )}
-              />
-              <Search className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4", 
-                isScrolled ? "text-gray-400" : "text-gray-600"
-              )} />
-              <Button 
-                type="submit" 
-                size="sm" 
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 rounded-full px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Search className="w-3 h-3" />
-              </Button>
-            </form>
-          </div>
-          
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             <NavigationMenu className={cn(isScrolled ? "" : "text-white")}>

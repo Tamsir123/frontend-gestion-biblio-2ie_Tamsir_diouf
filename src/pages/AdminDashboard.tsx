@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
+import { Dialog } from '@/components/ui/dialog'
 
 interface DashboardStats {
   total_users: number
@@ -74,6 +75,21 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showAddBookModal, setShowAddBookModal] = useState(false)
+  const [addBookLoading, setAddBookLoading] = useState(false)
+  const [addBookError, setAddBookError] = useState('')
+  const [addBookSuccess, setAddBookSuccess] = useState('')
+  const [newBook, setNewBook] = useState({
+    title: '',
+    author: '',
+    genre: '',
+    isbn: '',
+    publication_year: '',
+    total_quantity: 1,
+    description: ''
+  })
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -515,72 +531,165 @@ const AdminDashboard = () => {
               <div className="text-center py-20">
                 <BookOpen className="h-16 w-16 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">Gestion des Livres</h3>
-                <p className="text-gray-400 mb-6">Interface de gestion du catalogue à venir</p>
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <p className="text-gray-400 mb-6">Ajoutez un nouveau livre au catalogue</p>
+                <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowAddBookModal(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un livre
                 </Button>
               </div>
-            </TabsContent>
-
-            <TabsContent value="users">
-              <div className="text-center py-20">
-                <Users className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Gestion des Utilisateurs</h3>
-                <p className="text-gray-400 mb-6">Interface de gestion des comptes à venir</p>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Voir tous les utilisateurs
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="borrowings">
-              <div className="text-center py-20">
-                <FileText className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Gestion des Emprunts</h3>
-                <p className="text-gray-400 mb-6">Interface de suivi des emprunts à venir</p>
-                <Button className="bg-yellow-600 hover:bg-yellow-700">
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Voir les retards
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reviews">
-              <div className="text-center py-20">
-                <Star className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Modération des Avis</h3>
-                <p className="text-gray-400 mb-6">Interface de modération des commentaires à venir</p>
-                <Button className="bg-purple-600 hover:bg-purple-700">
-                  <Star className="h-4 w-4 mr-2" />
-                  Modérer les avis
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="notifications">
-              <div className="text-center py-20">
-                <Bell className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Notifications</h3>
-                <p className="text-gray-400 mb-6">Système de notifications à venir</p>
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  <Bell className="h-4 w-4 mr-2" />
-                  Créer une notification
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <div className="text-center py-20">
-                <Settings className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Paramètres</h3>
-                <p className="text-gray-400 mb-6">Configuration du système à venir</p>
-                <Button className="bg-gray-600 hover:bg-gray-700">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configurer
-                </Button>
-              </div>
+              {/* Modale d'ajout de livre */}
+              <Dialog open={showAddBookModal} onOpenChange={setShowAddBookModal}>
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
+                  <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl shadow-2xl p-8 max-w-md w-full relative border border-gray-700 max-h-[90vh] overflow-y-auto">
+                    <button className="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl transition" onClick={() => {
+                      setShowAddBookModal(false)
+                      setAddBookError('')
+                      setAddBookSuccess('')
+                      setNewBook({ title: '', author: '', genre: '', isbn: '', publication_year: '', total_quantity: 1, description: '' })
+                      setCoverImageFile(null)
+                      setCoverImagePreview(null)
+                    }}>✕</button>
+                    <div className="flex flex-col items-center mb-6">
+                      <div className="bg-blue-600 rounded-full p-3 mb-2 shadow-lg">
+                        <Plus className="h-7 w-7 text-white" />
+                      </div>
+                      <h2 className="text-2xl font-bold text-white mb-1">Ajouter un livre</h2>
+                      <p className="text-gray-400 text-sm">Remplissez les informations du livre à ajouter</p>
+                    </div>
+                    <form
+                      onSubmit={async e => {
+                        e.preventDefault()
+                        setAddBookLoading(true)
+                        setAddBookError('')
+                        setAddBookSuccess('')
+                        if (!newBook.title || !newBook.author || !newBook.genre || !newBook.isbn || !newBook.publication_year) {
+                          setAddBookError('Tous les champs obligatoires doivent être remplis.')
+                          setAddBookLoading(false)
+                          return
+                        }
+                        try {
+                          const token = localStorage.getItem('token')
+                          if (!token) {
+                            setAddBookError('Vous devez être connecté en tant qu\'admin.')
+                            setAddBookLoading(false)
+                            return
+                          }
+                          // Préparer le FormData
+                          const formData = new FormData()
+                          Object.entries(newBook).forEach(([key, value]) => {
+                            if (value !== '' && value !== undefined && value !== null) {
+                              if (key === 'publication_year' || key === 'total_quantity') {
+                                formData.append(key, String(value))
+                              } else {
+                                formData.append(key, value as string)
+                              }
+                            }
+                          })
+                          if (coverImageFile) {
+                            formData.append('cover_image', coverImageFile)
+                          }
+                          const res = await fetch('http://localhost:5000/api/books', {
+                            method: 'POST',
+                            headers: {
+                              Authorization: `Bearer ${token}`
+                            },
+                            body: formData
+                          })
+                          const data = await res.json()
+                          if (!res.ok || !data.success) {
+                            let errorMsg = data.message || data.error || 'Erreur lors de l\'ajout du livre'
+                            if (data.errors && Array.isArray(data.errors)) {
+                              errorMsg += '\n' + data.errors.map((err: { msg: string }) => `- ${err.msg}`).join('\n')
+                            }
+                            setAddBookError(errorMsg)
+                            setAddBookLoading(false)
+                            return
+                          }
+                          setAddBookSuccess('Livre ajouté avec succès !')
+                          setTimeout(() => setShowAddBookModal(false), 1200)
+                          setNewBook({ title: '', author: '', genre: '', isbn: '', publication_year: '', total_quantity: 1, description: '' })
+                          setCoverImageFile(null)
+                          setCoverImagePreview(null)
+                        } catch (e) {
+                          setAddBookError(e instanceof Error ? e.message : 'Erreur lors de l\'ajout du livre')
+                        } finally {
+                          setAddBookLoading(false)
+                        }
+                      }}
+                      encType="multipart/form-data"
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Titre</label>
+                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.title} onChange={e => setNewBook({ ...newBook, title: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Auteur</label>
+                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.author} onChange={e => setNewBook({ ...newBook, author: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Genre</label>
+                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.genre} onChange={e => setNewBook({ ...newBook, genre: e.target.value })} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">ISBN</label>
+                        <input type="text" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.isbn} onChange={e => setNewBook({ ...newBook, isbn: e.target.value })} required />
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="block text-sm font-semibold text-gray-200 mb-1">Année</label>
+                          <input type="number" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.publication_year} onChange={e => setNewBook({ ...newBook, publication_year: e.target.value })} required min="1000" max="2100" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-sm font-semibold text-gray-200 mb-1">Quantité</label>
+                          <input type="number" className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.total_quantity} onChange={e => setNewBook({ ...newBook, total_quantity: Number(e.target.value) })} required min="1" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Description <span className="text-gray-400">(optionnel)</span></label>
+                        <textarea className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition" value={newBook.description} onChange={e => setNewBook({ ...newBook, description: e.target.value })} rows={2} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-200 mb-1">Image de couverture <span className="text-gray-400">(optionnel)</span></label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="border border-gray-700 bg-gray-900 text-white rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-600 transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                          onChange={e => {
+                            const file = e.target.files?.[0] || null
+                            setCoverImageFile(file)
+                            if (file) {
+                              const reader = new FileReader()
+                              reader.onloadend = () => setCoverImagePreview(reader.result as string)
+                              reader.readAsDataURL(file)
+                            } else {
+                              setCoverImagePreview(null)
+                            }
+                          }}
+                        />
+                        {coverImagePreview && (
+                          <div className="mt-3 flex flex-col items-center">
+                            <img src={coverImagePreview} alt="Aperçu couverture" className="rounded-xl shadow-lg border-2 border-blue-600 w-32 h-40 object-cover" />
+                            <span className="text-xs text-gray-400 mt-1">Aperçu</span>
+                          </div>
+                        )}
+                      </div>
+                      {addBookError && <div className="text-red-500 bg-red-100 border border-red-400 rounded-lg px-3 py-2 text-sm whitespace-pre-line">{addBookError}</div>}
+                      {addBookSuccess && <div className="text-green-500 bg-green-100 border border-green-400 rounded-lg px-3 py-2 text-sm">{addBookSuccess}</div>}
+                      <div className="flex justify-center mt-6">
+                        <Button
+                          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-semibold py-3 px-10 rounded-2xl shadow-xl hover:scale-105 hover:from-green-500 hover:to-blue-700 transition-all text-lg disabled:opacity-60 border-2 border-blue-700"
+                          type="submit"
+                          disabled={addBookLoading}
+                        >
+                          <CheckCircle className="h-5 w-5 text-white" />
+                          {addBookLoading ? 'Ajout en cours...' : 'Valider'}
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </Dialog>
             </TabsContent>
           </Tabs>
         </div>

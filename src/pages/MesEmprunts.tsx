@@ -11,15 +11,18 @@ import { useToast } from '@/hooks/use-toast'
 interface Borrowing {
   id: number
   book_id: number
-  book_title: string
-  book_author: string
-  book_isbn: string
+  title: string          // Changé de book_title à title
+  author: string         // Changé de book_author à author
+  isbn: string          // Changé de book_isbn à isbn
   borrowed_at: string
   due_date: string
   returned_at: string | null
   status: 'active' | 'returned' | 'overdue'
+  current_status?: string // Ajouté car le backend renvoie aussi current_status
   renewal_count: number
   notes: string | null
+  comment_text?: string | null // Ajouté
+  days_overdue?: number // Ajouté
 }
 
 const MesEmprunts = () => {
@@ -50,7 +53,12 @@ const MesEmprunts = () => {
 
       if (response.ok) {
         const data = await response.json()
-        setBorrowings(data.borrowings || [])
+        // Adapter la structure des données backend vers frontend
+        const borrowingsData = (data.data?.borrowings || []).map((borrowing: any) => ({
+          ...borrowing,
+          // Utiliser les noms des champs tels qu'ils viennent du backend
+        }))
+        setBorrowings(borrowingsData)
       } else if (response.status === 401) {
         setBorrowings([])
         console.error('Non autorisé. Veuillez vous reconnecter.')
@@ -64,9 +72,9 @@ const MesEmprunts = () => {
         {
           id: 1,
           book_id: 1,
-          book_title: "Introduction à l'Intelligence Artificielle",
-          book_author: "Dr. Marie Dubois",
-          book_isbn: "978-2-123456-78-9",
+          title: "Introduction à l'Intelligence Artificielle",
+          author: "Dr. Marie Dubois",
+          isbn: "978-2-123456-78-9",
           borrowed_at: "2024-12-01T10:00:00Z",
           due_date: "2024-12-31T23:59:59Z",
           returned_at: null,
@@ -77,9 +85,9 @@ const MesEmprunts = () => {
         {
           id: 2,
           book_id: 3,
-          book_title: "Mathématiques Appliquées à l'Ingénierie",
-          book_author: "Prof. Jean-Claude Koné",
-          book_isbn: "978-2-456789-12-3",
+          title: "Mathématiques Appliquées à l'Ingénierie",
+          author: "Prof. Jean-Claude Koné",
+          isbn: "978-2-456789-12-3",
           borrowed_at: "2024-11-15T14:30:00Z",
           due_date: "2024-12-20T23:59:59Z",
           returned_at: null,
@@ -90,9 +98,9 @@ const MesEmprunts = () => {
         {
           id: 3,
           book_id: 7,
-          book_title: "Programmation Python pour Débutants",
-          book_author: "Dr. Sarah Johnson",
-          book_isbn: "978-2-567890-12-3",
+          title: "Programmation Python pour Débutants",
+          author: "Dr. Sarah Johnson",
+          isbn: "978-2-567890-12-3",
           borrowed_at: "2024-11-20T09:15:00Z",
           due_date: "2024-12-25T23:59:59Z",
           returned_at: null,
@@ -103,9 +111,9 @@ const MesEmprunts = () => {
         {
           id: 4,
           book_id: 4,
-          book_title: "Littérature Africaine Contemporaine",
-          book_author: "Dr. Fatima Traoré",
-          book_isbn: "978-2-789012-34-5",
+          title: "Littérature Africaine Contemporaine",
+          author: "Dr. Fatima Traoré",
+          isbn: "978-2-789012-34-5",
           borrowed_at: "2024-10-10T16:45:00Z",
           due_date: "2024-11-10T23:59:59Z",
           returned_at: "2024-11-08T14:20:00Z",
@@ -420,14 +428,14 @@ const MesEmprunts = () => {
                       <div className="flex items-start gap-6 mb-6">
                         <img
                           src={getBookImage(borrowing.book_id, (borrowing as { book_cover_image?: string }).book_cover_image)}
-                          alt={borrowing.book_title}
+                          alt={borrowing.title}
                           className="w-24 h-32 object-cover rounded-2xl shadow-md"
                         />
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-4">
                             <div>
                               <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
-                                {borrowing.book_title}
+                                {borrowing.title}
                               </h3>
                               <p className="text-lg text-gray-600 mb-1">{borrowing.book_author}</p>
                               <p className="text-sm text-gray-500">ISBN: {borrowing.book_isbn}</p>
@@ -581,11 +589,11 @@ const MesEmprunts = () => {
                     <div className="flex items-center space-x-6">
                       <img
                         src={getBookImage(borrowing.book_id, (borrowing as { book_cover_image?: string }).book_cover_image)}
-                        alt={borrowing.book_title}
+                        alt={borrowing.title}
                         className="w-16 h-20 object-cover rounded-2xl shadow-sm"
                       />
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-1">{borrowing.book_title}</h3>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-1">{borrowing.title}</h3>
                         <p className="text-gray-600 mb-2">{borrowing.book_author}</p>
                         <div className="flex items-center text-sm text-gray-500">
                           <CheckCircle className="w-4 h-4 mr-2 text-green-600" />

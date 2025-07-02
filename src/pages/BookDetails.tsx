@@ -119,6 +119,12 @@ const BookDetails = () => {
         return
       }
 
+      // Calculer la date de retour par défaut (15 jours à partir d'aujourd'hui)
+      const today = new Date()
+      const dueDate = new Date(today)
+      dueDate.setDate(dueDate.getDate() + 15)
+      const dueDateString = dueDate.toISOString().split('T')[0] // Format YYYY-MM-DD
+
       const response = await fetch('http://localhost:5000/api/borrowings', {
         method: 'POST',
         headers: {
@@ -126,7 +132,8 @@ const BookDetails = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          book_id: book.id
+          book_id: book.id,
+          due_date: dueDateString
         })
       })
 

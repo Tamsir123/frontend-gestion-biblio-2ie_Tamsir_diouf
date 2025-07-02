@@ -15,6 +15,7 @@ interface Borrowing {
   title: string          // Changé de book_title à title
   author: string         // Changé de book_author à author
   isbn: string          // Changé de book_isbn à isbn
+  cover_image?: string  // Ajout du champ pour l'image de couverture
   borrowed_at: string
   due_date: string
   returned_at: string | null
@@ -278,7 +279,7 @@ const MesEmprunts = () => {
       id: borrowing.book_id,
       title: borrowing.title,
       author: borrowing.author,
-      cover_image: (borrowing as { book_cover_image?: string }).book_cover_image
+      cover_image: borrowing.cover_image
     })
     setReviewModalOpen(true)
   }
@@ -330,21 +331,20 @@ const MesEmprunts = () => {
     })
   }
 
-  // Nouvelle version : on attend que l'API renvoie book_cover_image (string | undefined)
+  // Fonction pour obtenir l'image du livre (utilise uniquement les vraies images)
   const getBookImage = (bookId: number, coverImage?: string) => {
+    // Si une image de couverture est fournie par l'API
     if (coverImage) {
+      // Si l'image commence par '/', c'est un chemin relatif du serveur
       if (coverImage.startsWith('/')) {
         return `http://localhost:5000${coverImage}`
       }
+      // Sinon, c'est déjà une URL complète
       return coverImage
     }
-    const bookImages: { [key: number]: string } = {
-      1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=300&h=400&fit=crop',
-      3: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=300&h=400&fit=crop',
-      4: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=400&fit=crop',
-      7: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&h=400&fit=crop'
-    }
-    return bookImages[bookId] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop'
+    
+    // Image par défaut si aucune image n'est disponible
+    return '/placeholder.svg' // Utilise l'image placeholder du projet
   }
 
   const activeBorrowings = borrowings.filter(b => b.status === 'active' || b.status === 'overdue')
@@ -504,7 +504,7 @@ const MesEmprunts = () => {
                       {/* Header avec info du livre */}
                       <div className="flex items-start gap-6 mb-6">
                         <img
-                          src={getBookImage(borrowing.book_id, (borrowing as { book_cover_image?: string }).book_cover_image)}
+                          src={getBookImage(borrowing.book_id, borrowing.cover_image)}
                           alt={borrowing.title}
                           className="w-24 h-32 object-cover rounded-2xl shadow-md"
                         />
@@ -686,7 +686,7 @@ const MesEmprunts = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-6">
                       <img
-                        src={getBookImage(borrowing.book_id, (borrowing as { book_cover_image?: string }).book_cover_image)}
+                        src={getBookImage(borrowing.book_id, borrowing.cover_image)}
                         alt={borrowing.title}
                         className="w-16 h-20 object-cover rounded-2xl shadow-sm"
                       />

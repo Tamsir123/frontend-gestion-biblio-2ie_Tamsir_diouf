@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { 
   User, Mail, Phone, MapPin, Calendar, GraduationCap, 
@@ -63,9 +63,11 @@ const ProfilNew = () => {
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security'>('profile')
   const [formData, setFormData] = useState<Partial<UserProfile>>({})
+  const [uploadingImage, setUploadingImage] = useState(false)
   const { toast } = useToast()
 
   const token = localStorage.getItem('token')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchProfile = useCallback(async () => {
     if (!token) {
@@ -153,6 +155,73 @@ const ProfilNew = () => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Vérifier le type de fichier
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un fichier image valide",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Vérifier la taille du fichier (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Erreur",
+        description: "L'image ne doit pas dépasser 5 MB",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('profile_image', file)
+
+      const response = await fetch('http://localhost:5000/api/user/profile/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        await fetchProfile() // Recharger le profil pour obtenir la nouvelle image
+        toast({
+          title: "Succès",
+          description: "Photo de profil mise à jour avec succès",
+        })
+      } else {
+        throw new Error('Erreur lors du téléchargement')
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du téléchargement de l'image",
+        variant: "destructive"
+      })
+    } finally {
+      setUploadingImage(false)
+      // Réinitialiser l'input file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click()
+  }
+
   const getProfileImage = () => {
     if (profile?.profile_image) {
       return profile.profile_image.startsWith('/') 
@@ -236,7 +305,7 @@ const ProfilNew = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            <div className="relative mb-6">
+            <div className="relative mb-6 group">
               <motion.img
                 src={getProfileImage()}
                 alt={profile.name}
@@ -244,13 +313,43 @@ const ProfilNew = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               />
+              
+              {/* Overlay au hover */}
+              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                <span className="text-white text-sm font-medium">Changer</span>
+              </div>
+              
               <motion.button
-                className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow duration-200"
+                onClick={triggerImageUpload}
+                disabled={uploadingImage}
+                className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow duration-200 disabled:opacity-50 hover:bg-blue-50"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
+                title="Changer la photo de profil"
               >
-                <Camera className="w-4 h-4 text-gray-600" />
+                {uploadingImage ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                ) : (
+                  <Camera className="w-4 h-4 text-blue-600" />
+                )}
               </motion.button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              
+              {uploadingImage && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-2"></div>
+                    <span className="text-xs">Upload...</span>
+                  </div>
+                </div>
+              )}
             </div>
             
             <h1 className="text-4xl font-bold text-white mb-2">{profile.name}</h1>
@@ -283,14 +382,12 @@ const ProfilNew = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { icon: BookOpen, label: 'Emprunts actifs', value: stats?.active_borrowings || 0, color: 'text-blue-600' },
             { icon: TrendingUp, label: 'Total emprunts', value: stats?.total_borrowings || 0, color: 'text-green-600' },
             { icon: Award, label: 'Livres retournés', value: stats?.total_returned || 0, color: 'text-purple-600' },
-            { icon: Star, label: 'Avis donnés', value: stats?.total_reviews || 0, color: 'text-yellow-600' },
-            { icon: Target, label: 'Note moyenne', value: stats?.avg_rating_given && typeof stats.avg_rating_given === 'number' ? stats.avg_rating_given.toFixed(1) : '0', color: 'text-orange-600' },
-            { icon: Clock, label: 'Connexions (30j)', value: stats?.logins_last_30_days || 0, color: 'text-indigo-600' }
+            { icon: Star, label: 'Avis donnés', value: stats?.total_reviews || 0, color: 'text-yellow-600' }
           ].map((stat, index) => (
             <motion.div
               key={index}

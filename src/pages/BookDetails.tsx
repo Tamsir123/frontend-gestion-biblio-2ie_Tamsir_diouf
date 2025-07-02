@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { motion } from 'framer-motion'
+import { useToast } from '@/hooks/use-toast'
 
 interface Book {
   id: number
@@ -59,6 +60,7 @@ const BookDetails = () => {
   })
   const [submittingReview, setSubmittingReview] = useState(false)
   const [userReview, setUserReview] = useState<Review | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (id) {
@@ -140,14 +142,26 @@ const BookDetails = () => {
       if (response.ok) {
         // Actualiser les données du livre
         fetchBookDetails(book.id)
-        alert('Livre emprunté avec succès !')
+        toast({
+          title: "Succès",
+          description: "Livre emprunté avec succès !",
+          variant: "default"
+        })
       } else {
         const data = await response.json()
-        alert(data.message || 'Erreur lors de l\'emprunt')
+        toast({
+          title: "Erreur",
+          description: data.message || 'Erreur lors de l\'emprunt',
+          variant: "destructive"
+        })
       }
     } catch (error) {
       console.error('Erreur:', error)
-      alert('Erreur lors de l\'emprunt')
+      toast({
+        title: "Erreur",
+        description: 'Erreur lors de l\'emprunt',
+        variant: "destructive"
+      })
     } finally {
       setBorrowing(false)
     }
@@ -200,7 +214,11 @@ const BookDetails = () => {
   const copyISBN = () => {
     if (book) {
       navigator.clipboard.writeText(book.isbn)
-      alert('ISBN copié dans le presse-papiers !')
+      toast({
+        title: "Copié",
+        description: "ISBN copié dans le presse-papiers !",
+        variant: "default"
+      })
     }
   }
 
@@ -213,7 +231,11 @@ const BookDetails = () => {
       })
     } else if (book) {
       navigator.clipboard.writeText(window.location.href)
-      alert('Lien copié dans le presse-papiers !')
+      toast({
+        title: "Copié",
+        description: "Lien copié dans le presse-papiers !",
+        variant: "default"
+      })
     }
   }
 
@@ -255,7 +277,11 @@ const BookDetails = () => {
   // Fonctions pour gérer les avis
   const handleSubmitReview = async () => {
     if (newReview.rating === 0 || newReview.comment.trim() === '') {
-      alert('Veuillez donner une note et écrire un commentaire')
+      toast({
+        title: "Erreur",
+        description: "Veuillez donner une note et écrire un commentaire",
+        variant: "destructive"
+      })
       return
     }
 
@@ -275,14 +301,22 @@ const BookDetails = () => {
       })
 
       if (response.ok) {
-        alert('Votre avis a été soumis avec succès !')
+        toast({
+          title: "Succès",
+          description: "Votre avis a été soumis avec succès !",
+          variant: "default"
+        })
         setShowReviewForm(false)
         setNewReview({ rating: 0, comment: '' })
         // Recharger les avis
         fetchBookReviews(parseInt(id!))
       } else {
         const errorData = await response.json()
-        alert(errorData.message || 'Erreur lors de la soumission de l\'avis')
+        toast({
+          title: "Erreur",
+          description: errorData.message || 'Erreur lors de la soumission de l\'avis',
+          variant: "destructive"
+        })
       }
     } catch (error) {
       // Simulation pour la démo
@@ -301,7 +335,11 @@ const BookDetails = () => {
       setUserReview(newReviewData)
       setShowReviewForm(false)
       setNewReview({ rating: 0, comment: '' })
-      alert('Votre avis a été ajouté avec succès !')
+      toast({
+        title: "Succès",
+        description: "Votre avis a été ajouté avec succès !",
+        variant: "default"
+      })
     } finally {
       setSubmittingReview(false)
     }

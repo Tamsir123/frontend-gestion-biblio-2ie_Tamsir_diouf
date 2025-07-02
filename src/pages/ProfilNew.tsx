@@ -285,16 +285,23 @@ const ProfilNew = () => {
       
       {/* Hero Section avec photo de profil */}
       <motion.div 
-        className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 overflow-hidden"
+        className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 h-[60vh] flex items-center justify-center overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-black/20"></div>
+          {/* Pattern géométrique moderne */}
           <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '30px 30px'
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: '80px 80px'
+          }}></div>
+          {/* Gradient overlay pour profondeur */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/30"></div>
+          {/* Pattern de grille subtile */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
           }}></div>
         </div>
         
@@ -322,15 +329,15 @@ const ProfilNew = () => {
               <motion.button
                 onClick={triggerImageUpload}
                 disabled={uploadingImage}
-                className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow duration-200 disabled:opacity-50 hover:bg-blue-50"
+                className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow duration-200 disabled:opacity-50 hover:bg-gray-50"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 title="Changer la photo de profil"
               >
                 {uploadingImage ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
                 ) : (
-                  <Camera className="w-4 h-4 text-blue-600" />
+                  <Camera className="w-4 h-4 text-gray-700" />
                 )}
               </motion.button>
               
@@ -353,23 +360,23 @@ const ProfilNew = () => {
             </div>
             
             <h1 className="text-4xl font-bold text-white mb-2">{profile.name}</h1>
-            <p className="text-xl text-blue-100 mb-2">{profile.email}</p>
+            <p className="text-xl text-gray-200 mb-2">{profile.email}</p>
             <div className="flex items-center space-x-4 mb-4">
               <Badge className={`${getLevelBadgeColor(profile.level)} border-0`}>
                 <GraduationCap className="w-3 h-3 mr-1" />
                 {profile.level}
               </Badge>
-              <Badge className="bg-white/20 text-white border-white/30">
+              <Badge className="bg-white/90 text-gray-800 border-0 backdrop-blur-sm">
                 <Building className="w-3 h-3 mr-1" />
                 {profile.department}
               </Badge>
-              <Badge className="bg-white/20 text-white border-white/30">
+              <Badge className="bg-white/90 text-gray-800 border-0 backdrop-blur-sm">
                 ID: {profile.student_id}
               </Badge>
             </div>
             
             {profile.bio && (
-              <p className="text-blue-100 max-w-2xl">{profile.bio}</p>
+              <p className="text-gray-200 max-w-2xl">{profile.bio}</p>
             )}
           </motion.div>
         </div>

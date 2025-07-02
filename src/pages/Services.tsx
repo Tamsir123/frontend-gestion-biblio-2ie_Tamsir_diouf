@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Book, Users, MapPin, Clock, Computer, Database, Wifi, Coffee, Volume2, Headphones, Search, Download, Globe, Shield, HelpCircle, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const Services = () => {
   const services = [
@@ -88,8 +90,35 @@ const Services = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white pt-20 pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      {/* Hero Section */}
+      <div className="relative bg-black h-[50vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1920&h=800&fit=crop" 
+            alt="Services Bibliothèque" 
+            className="w-full h-full object-cover opacity-70 grayscale"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/90"></div>
+        </div>
+        
+        <motion.div 
+          className="relative z-10 text-center text-white px-4"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-5xl md:text-6xl font-light mb-6">Services</h1>
+          <div className="w-20 h-0.5 bg-white mx-auto mb-6"></div>
+          <p className="text-xl font-light max-w-2xl mx-auto opacity-90">
+            Découvrez tous nos services et ressources pour votre réussite académique
+          </p>
+        </motion.div>
+      </div>
+
+      <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -100,10 +129,10 @@ const Services = () => {
           <div className="inline-block mb-4 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
             Services E-Library 2iE
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
             Nos Services & Ressources
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          </h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             E-Library 2iE vous accompagne dans votre parcours académique avec des services modernes 
             et des ressources documentaires de qualité adaptées à l'ingénierie.
           </p>
@@ -271,6 +300,8 @@ const Services = () => {
           </div>
         </motion.div>
       </div>
+
+      <Footer />
     </div>
   );
 };

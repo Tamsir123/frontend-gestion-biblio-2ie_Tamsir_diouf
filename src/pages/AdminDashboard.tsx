@@ -21,7 +21,10 @@ import {
   Activity,
   Bell,
   Shield,
-  LucideIcon
+  LucideIcon,
+  Download,
+  PieChart,
+  LineChart
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,6 +32,20 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { Dialog } from '@/components/ui/dialog'
+
+// Import des composants analytics
+import { 
+  TrendChart, 
+  ActivityChart, 
+  PopularBooksChart, 
+  CategoryChart, 
+  BorrowingStatsChart 
+} from '@/components/analytics/Charts'
+import { ExportButtons, StatCardAnalytics } from '@/components/analytics/AnalyticsComponents'
+import { analyticsService, DashboardAnalytics, BorrowingAnalytics } from '@/services/analyticsService'
+
+// Import du composant de détails des livres
+import EnhancedBookDetailsModal from '@/components/books/EnhancedBookDetailsModal'
 
 interface DashboardStats {
   total_users: number
@@ -144,6 +161,13 @@ const AdminDashboard = () => {
   })
   const [showAddBookModal, setShowAddBookModal] = useState(false)
   const [showEditBookModal, setShowEditBookModal] = useState(false)
+  const [showBookDetailsModal, setShowBookDetailsModal] = useState(false)
+  
+  // États pour les analytics
+  const [analyticsData, setAnalyticsData] = useState<DashboardAnalytics | null>(null)
+  const [borrowingAnalytics, setBorrowingAnalytics] = useState<BorrowingAnalytics | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   const [selectedBook, setSelectedBook] = useState(null)
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
@@ -430,7 +454,7 @@ const AdminDashboard = () => {
 
   const handleAddUser = async (userData: typeof newUser) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.get
       
       if (!token) {
         toast({
@@ -692,6 +716,12 @@ const AdminDashboard = () => {
     }
   }
 
+  // Fonction pour afficher les détails d'un livre
+  const handleViewBookDetails = (book) => {
+    setSelectedBook(book)
+    setShowBookDetailsModal(true)
+  }
+
   const handleEditBook = async (bookData) => {
     try {
       const token = localStorage.getItem('token')
@@ -800,6 +830,97 @@ const AdminDashboard = () => {
     navigate('/')
   }
 
+  // Fonctions pour les analytics
+  const fetchAnalyticsData = useCallback(async () => {
+    try {
+      setAnalyticsLoading(true)
+      const data = await analyticsService.getDashboardStats()
+      setAnalyticsData(data)
+    } catch (error) {
+      console.error('Erreur lors de la récupération des analytics:', error)
+      toast({
+        title: "Erreur Analytics",
+        description: "Impossible de charger les données analytics",
+        variant: "destructive"
+      })
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }, [toast])
+
+  const fetchBorrowingAnalytics = useCallback(async () => {
+    try {
+      const data = await analyticsService.getBorrowingAnalytics()
+      setBorrowingAnalytics(data)
+    } catch (error) {
+      console.error('Erreur lors de la récupération des analytics emprunts:', error)
+    }
+  }, [])
+
+  // Fonctions d'export
+  const handleExportBorrowings = async () => {
+    try {
+      setExportLoading(true)
+      const blob = await analyticsService.exportData('borrowings')
+      const filename = `emprunts_${new Date().toISOString().split('T')[0]}.csv`
+      analyticsService.downloadCSV(blob, filename)
+      toast({
+        title: "Export réussi",
+        description: "Les données des emprunts ont été exportées"
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible d'exporter les emprunts",
+        variant: "destructive"
+      })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleExportUsers = async () => {
+    try {
+      setExportLoading(true)
+      const blob = await analyticsService.exportData('users')
+      const filename = `utilisateurs_${new Date().toISOString().split('T')[0]}.csv`
+      analyticsService.downloadCSV(blob, filename)
+      toast({
+        title: "Export réussi",
+        description: "Les données des utilisateurs ont été exportées"
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible d'exporter les utilisateurs",
+        variant: "destructive"
+      })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleExportBooks = async () => {
+    try {
+      setExportLoading(true)
+      const blob = await analyticsService.exportData('books')
+      const filename = `livres_${new Date().toISOString().split('T')[0]}.csv`
+      analyticsService.downloadCSV(blob, filename)
+      toast({
+        title: "Export réussi",
+        description: "Les données des livres ont été exportées"
+      })
+    } catch (error) {
+      toast({
+        title: "Erreur d'export",
+        description: "Impossible d'exporter les livres",
+        variant: "destructive"
+      })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchDashboardData()
   }, [fetchDashboardData])
@@ -811,8 +932,12 @@ const AdminDashboard = () => {
       fetchBorrowings()
     } else if (activeTab === 'users') {
       fetchUsers()
+    } else if (activeTab === 'overview') {
+      // Charger les données analytics pour le dashboard
+      fetchAnalyticsData()
+      fetchBorrowingAnalytics()
     }
-  }, [activeTab, fetchBooks, fetchBorrowings, fetchUsers])
+  }, [activeTab, fetchBooks, fetchBorrowings, fetchUsers, fetchAnalyticsData, fetchBorrowingAnalytics])
 
   // Fonctions utilitaires pour les emprunts
   const formatDate = (dateString: string) => {
@@ -959,79 +1084,251 @@ const AdminDashboard = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Vue d'ensemble */}
+        {/* Vue d'ensemble - Dashboard Analytics */}
         {activeTab === 'overview' && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Vue d'ensemble</h2>
-              <Button
-                onClick={() => {
-                  fetchDashboardData()
-                  toast({
-                    title: "Actualisation",
-                    description: "Statistiques mises à jour"
-                  })
-                }}
-                variant="outline"
-                className="flex items-center space-x-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span>Actualiser</span>
-              </Button>
+              <h2 className="text-2xl font-bold text-gray-900">Dashboard Analytics</h2>
+              <div className="flex items-center space-x-3">
+                <ExportButtons
+                  onExportBorrowings={handleExportBorrowings}
+                  onExportUsers={handleExportUsers}
+                  onExportBooks={handleExportBooks}
+                  loading={exportLoading}
+                />
+                <Button
+                  onClick={() => {
+                    fetchDashboardData()
+                    fetchAnalyticsData()
+                    toast({
+                      title: "Actualisation",
+                      description: "Statistiques mises à jour"
+                    })
+                  }}
+                  variant="outline"
+                  className="flex items-center space-x-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Actualiser</span>
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Users className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Utilisateurs</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.total_users || 0}</p>
-                      <p className="text-xs text-gray-500">Utilisateurs inscrits</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+
+            {/* Statistiques générales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatCardAnalytics
+                title="Utilisateurs"
+                value={analyticsData?.overview?.total_users || stats?.total_users || 0}
+                icon={Users}
+                color="bg-blue-600"
+                description="Utilisateurs inscrits"
+                trend={analyticsData?.trends?.users_growth ? {
+                  value: analyticsData.trends.users_growth,
+                  isPositive: analyticsData.trends.users_growth > 0
+                } : undefined}
+              />
               
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <BookOpen className="h-8 w-8 text-green-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Livres</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.total_books || 0}</p>
-                      <p className="text-xs text-gray-500">Titres dans la collection</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <StatCardAnalytics
+                title="Livres"
+                value={analyticsData?.overview?.total_books || stats?.total_books || 0}
+                icon={BookOpen}
+                color="bg-green-600"
+                description="Titres dans la collection"
+                trend={analyticsData?.trends?.books_growth ? {
+                  value: analyticsData.trends.books_growth,
+                  isPositive: analyticsData.trends.books_growth > 0
+                } : undefined}
+              />
               
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <FileText className="h-8 w-8 text-yellow-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Emprunts actifs</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.active_borrowings || 0}</p>
-                      <p className="text-xs text-gray-500">Livres actuellement empruntés</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <StatCardAnalytics
+                title="Emprunts actifs"
+                value={analyticsData?.overview?.active_borrowings || stats?.active_borrowings || 0}
+                icon={FileText}
+                color="bg-yellow-600"
+                description="Livres actuellement empruntés"
+                trend={analyticsData?.trends?.borrowings_growth ? {
+                  value: analyticsData.trends.borrowings_growth,
+                  isPositive: analyticsData.trends.borrowings_growth > 0
+                } : undefined}
+              />
               
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <AlertTriangle className="h-8 w-8 text-red-600" />
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">Retards</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats?.overdue_borrowings || 0}</p>
-                      <p className="text-xs text-gray-500">Emprunts en retard</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <StatCardAnalytics
+                title="Retards"
+                value={analyticsData?.overview?.overdue_borrowings || stats?.overdue_borrowings || 0}
+                icon={AlertTriangle}
+                color="bg-red-600"
+                description="Emprunts en retard"
+              />
             </div>
+
+            {analyticsLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-gray-600">Chargement des analytics...</span>
+              </div>
+            ) : analyticsData ? (
+              <>
+                {/* Section des graphiques - Ligne 1 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Tendances des emprunts */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <LineChart className="h-5 w-5 mr-2 text-blue-600" />
+                        Tendances des emprunts (30 derniers jours)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData?.recent_activity ? (
+                        <TrendChart data={analyticsService.formatTrendData(analyticsData.recent_activity)} />
+                      ) : (
+                        <div className="h-[300px] flex items-center justify-center text-gray-500">
+                          Aucune donnée de tendance disponible
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Heures de pointe */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Activity className="h-5 w-5 mr-2 text-purple-600" />
+                        Activité par heures
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData?.peak_hours ? (
+                        <ActivityChart data={analyticsService.formatActivityData(analyticsData.peak_hours)} />
+                      ) : (
+                        <div className="h-[200px] flex items-center justify-center text-gray-500">
+                          Aucune donnée d'activité disponible
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Section des graphiques - Ligne 2 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Livres populaires */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Star className="h-5 w-5 mr-2 text-yellow-600" />
+                        Top 10 des livres populaires
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData?.popular_books && analyticsData.popular_books.length > 0 ? (
+                        <PopularBooksChart data={analyticsService.formatPopularBooksData(analyticsData.popular_books)} />
+                      ) : (
+                        <div className="h-[300px] flex items-center justify-center text-gray-500">
+                          Aucune donnée de popularité disponible
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Répartition par catégories */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <PieChart className="h-5 w-5 mr-2 text-indigo-600" />
+                        Répartition par genres
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData?.categories_stats && analyticsData.categories_stats.length > 0 ? (
+                        <CategoryChart data={analyticsService.formatCategoryData(analyticsData.categories_stats)} />
+                      ) : (
+                        <div className="h-[300px] flex items-center justify-center text-gray-500">
+                          Aucune donnée de catégorie disponible
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Analytics détaillés des emprunts */}
+                {borrowingAnalytics?.monthly_trends && borrowingAnalytics.monthly_trends.length > 0 && (
+                  <Card className="mb-8">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <BarChart3 className="h-5 w-5 mr-2 text-green-600" />
+                        Statistiques mensuelles des emprunts
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <BorrowingStatsChart data={analyticsService.formatBorrowingStatsData(borrowingAnalytics.monthly_trends)} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Statistiques supplémentaires */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center">
+                        <Star className="h-8 w-8 text-yellow-500" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-600">Note moyenne</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {analyticsData?.overview?.average_rating && typeof analyticsData.overview.average_rating === 'number' 
+                              ? analyticsData.overview.average_rating.toFixed(1) 
+                              : 'N/A'}
+                          </p>
+                          <p className="text-xs text-gray-500">Sur {analyticsData?.overview?.total_reviews || 0} avis</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center">
+                        <TrendingUp className="h-8 w-8 text-green-500" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-600">Croissance mensuelle</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            +{analyticsData?.trends?.borrowings_growth || 0}%
+                          </p>
+                          <p className="text-xs text-gray-500">Emprunts ce mois</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center">
+                        <Clock className="h-8 w-8 text-blue-500" />
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-gray-600">Heure de pointe</p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {analyticsData?.peak_hours && analyticsData.peak_hours.length > 0 ? 
+                              `${analyticsData.peak_hours[0].hour}h` : 'N/A'
+                            }
+                          </p>
+                          <p className="text-xs text-gray-500">Activité maximale</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-gray-600">Aucune donnée analytics disponible</p>
+                <Button 
+                  onClick={fetchAnalyticsData} 
+                  className="mt-4"
+                  variant="outline"
+                >
+                  Charger les analytics
+                </Button>
+              </Card>
+            )}
           </div>
         )}
 
@@ -1080,11 +1377,7 @@ const AdminDashboard = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {(() => {
-                         console.log('=== AFFICHAGE DES LIVRES ===')
-                         console.log('books array:', books)
-                         console.log('books.length:', books.length)
                          return books.map((book, index) => {
-                          console.log(`Livre ${index}:`, book)
                           return (
                           <tr key={book.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -1106,6 +1399,14 @@ const AdminDashboard = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={() => handleViewBookDetails(book)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Détails
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 onClick={() => {
                                   setSelectedBook(book)
                                   setNewBook({
@@ -1122,7 +1423,7 @@ const AdminDashboard = () => {
                                   setShowEditBookModal(true)
                                 }}
                               >
-                                <Eye className="h-4 w-4 mr-1" />
+                                <Settings className="h-4 w-4 mr-1" />
                                 Modifier
                               </Button>
                               <Button
@@ -1156,11 +1457,6 @@ const AdminDashboard = () => {
         {/* Gestion des utilisateurs */}
         {activeTab === 'users' && (
           <div>
-            {/* Log pour debugger */}
-            {console.log('=== RENDU ONGLET UTILISATEURS ===')}
-            {console.log('users state dans le rendu:', users)}
-            {console.log('users.length dans le rendu:', users.length)}
-            {console.log('usersLoading dans le rendu:', usersLoading)}
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Gestion des utilisateurs</h2>
               <Button
@@ -2398,6 +2694,37 @@ const AdminDashboard = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal des détails d'un livre */}
+      {selectedBook && (
+        <EnhancedBookDetailsModal
+          book={selectedBook}
+          isOpen={showBookDetailsModal}
+          onClose={() => {
+            setShowBookDetailsModal(false)
+            setSelectedBook(null)
+          }}
+          onEdit={() => {
+            setNewBook({
+              title: selectedBook.title || '',
+              author: selectedBook.author || '',
+              genre: selectedBook.genre || '',
+              isbn: selectedBook.isbn || '',
+              publication_year: selectedBook.publication_year || '',
+              total_quantity: selectedBook.total_quantity || 1,
+              description: selectedBook.description || ''
+            })
+            setCoverImageFile(null)
+            setCoverImagePreview(null)
+            setShowBookDetailsModal(false)
+            setShowEditBookModal(true)
+          }}
+          onDelete={() => {
+            setShowBookDetailsModal(false)
+            handleDeleteBook(selectedBook.id)
+          }}
+        />
       )}
     </div>
   )

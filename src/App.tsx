@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
-import Inscription from "./pages/Incrisption";
+import Register from "./pages/Register";
 import Catalogue from "./pages/Catalogue";
 import BookDetails from "./pages/BookDetails";
 import MesEmprunts from "./pages/MesEmprunts";
@@ -42,7 +42,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/inscription" element={<Inscription />} />
+            <Route path="/inscription" element={<Register />} />
             <Route path="/catalogue" element={<Catalogue />} />
             <Route path="/livre/:id" element={<BookDetails />} />
             <Route path="/mes-emprunts" element={<MesEmprunts />} />

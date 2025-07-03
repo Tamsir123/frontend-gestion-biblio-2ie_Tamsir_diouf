@@ -228,19 +228,20 @@ const ProfilNew = () => {
         ? `http://localhost:5000${profile.profile_image}`
         : profile.profile_image
     }
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&size=200&background=3b82f6&color=ffffff&bold=true`
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&size=200&background=000000&color=ffffff&bold=true`
   }
 
   const getLevelBadgeColor = (level: string) => {
+    // Utilise uniquement du noir et blanc avec différentes nuances de gris
     const colors = {
-      'L1': 'bg-green-100 text-green-800',
-      'L2': 'bg-blue-100 text-blue-800',
-      'L3': 'bg-purple-100 text-purple-800',
-      'M1': 'bg-orange-100 text-orange-800',
-      'M2': 'bg-red-100 text-red-800',
-      'PhD': 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+      'L1': 'bg-gray-100 text-gray-800 border border-gray-300',
+      'L2': 'bg-gray-200 text-gray-900 border border-gray-400',
+      'L3': 'bg-gray-300 text-gray-900 border border-gray-500',
+      'M1': 'bg-gray-700 text-white border border-gray-600',
+      'M2': 'bg-gray-800 text-white border border-gray-700',
+      'PhD': 'bg-black text-white border border-gray-800'
     }
-    return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+    return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800 border border-gray-300'
   }
 
   if (loading) {
@@ -253,7 +254,7 @@ const ProfilNew = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-8"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-black mx-auto mb-8"></div>
             <p className="text-xl text-gray-600">Chargement de votre profil...</p>
           </motion.div>
         </div>
@@ -277,167 +278,178 @@ const ProfilNew = () => {
         <Footer />
       </div>
     )
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      {/* Hero Section avec photo de profil */}
-      <motion.div 
-        className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 h-[60vh] flex items-center justify-center overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="absolute inset-0">
-          {/* Pattern géométrique moderne */}
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '80px 80px'
-          }}></div>
-          {/* Gradient overlay pour profondeur */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/30"></div>
-          {/* Pattern de grille subtile */}
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
-            backgroundSize: '40px 40px'
-          }}></div>
-        </div>
+  }    return (
+      <div className="min-h-screen bg-white">
+        <Navbar />
         
-        <div className="relative container mx-auto px-4 py-16">
-          <motion.div 
-            className="flex flex-col items-center text-center"
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-          >
-            <div className="relative mb-6 group">
-              <motion.img
-                src={getProfileImage()}
-                alt={profile.name}
-                className="w-32 h-32 rounded-full border-4 border-white shadow-2xl object-cover"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              />
-              
-              {/* Overlay au hover */}
-              <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">Changer</span>
+        {/* Hero Section avec photo de profil */}
+        <motion.div 
+          className="relative bg-black min-h-[70vh] flex items-center justify-center overflow-hidden pt-20 pb-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="absolute inset-0">
+            {/* Pattern géométrique moderne */}
+            <div className="absolute inset-0" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundSize: '80px 80px'
+            }}></div>
+            {/* Gradient overlay pour profondeur */}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 via-transparent to-gray-900/30"></div>
+            {/* Pattern de grille subtile */}
+            <div className="absolute inset-0" style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+              backgroundSize: '40px 40px'
+            }}></div>
+          </div>
+          
+          <div className="relative container mx-auto px-4 py-8 z-10">
+            <motion.div 
+              className="flex flex-col items-center text-center"
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
+              {/* Photo de profil */}
+              <div className="relative mb-8 group">
+                <motion.img
+                  src={getProfileImage()}
+                  alt={profile.name}
+                  className="w-32 h-32 rounded-full border-4 border-white shadow-2xl object-cover"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.2 }}
+                />
+                
+                {/* Overlay au hover */}
+                <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">Changer</span>
+                </div>
+                
+                <motion.button
+                  onClick={triggerImageUpload}
+                  disabled={uploadingImage}
+                  className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow duration-200 disabled:opacity-50 hover:bg-gray-50"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Changer la photo de profil"
+                >
+                  {uploadingImage ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                  ) : (
+                    <Camera className="w-4 h-4 text-gray-700" />
+                  )}
+                </motion.button>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                
+                {uploadingImage && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-2"></div>
+                      <span className="text-xs">Upload...</span>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              <motion.button
-                onClick={triggerImageUpload}
-                disabled={uploadingImage}
-                className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-shadow duration-200 disabled:opacity-50 hover:bg-gray-50"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                title="Changer la photo de profil"
-              >
-                {uploadingImage ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-                ) : (
-                  <Camera className="w-4 h-4 text-gray-700" />
-                )}
-              </motion.button>
+              {/* Nom */}
+              <h1 className="text-5xl font-bold text-white mb-4">{profile.name}</h1>
               
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
+              {/* Email */}
+              <p className="text-xl text-gray-200 mb-6">{profile.email}</p>
               
-              {uploadingImage && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-2"></div>
-                    <span className="text-xs">Upload...</span>
-                  </div>
-                </div>
+              {/* Badges */}
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+                <Badge className={`${getLevelBadgeColor(profile.level)} border-0 px-3 py-1`}>
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  {profile.level}
+                </Badge>
+                <Badge className="bg-white/90 text-gray-800 border-0 backdrop-blur-sm px-3 py-1">
+                  <Building className="w-4 h-4 mr-2" />
+                  {profile.department}
+                </Badge>
+                <Badge className="bg-white/90 text-gray-800 border-0 backdrop-blur-sm px-3 py-1">
+                  <User className="w-4 h-4 mr-2" />
+                  ID: {profile.student_id}
+                </Badge>
+              </div>
+              
+              {/* Bio */}
+              {profile.bio && (
+                <p className="text-gray-200 max-w-3xl leading-relaxed text-lg">{profile.bio}</p>
               )}
-            </div>
-            
-            <h1 className="text-4xl font-bold text-white mb-2">{profile.name}</h1>
-            <p className="text-xl text-gray-200 mb-2">{profile.email}</p>
-            <div className="flex items-center space-x-4 mb-4">
-              <Badge className={`${getLevelBadgeColor(profile.level)} border-0`}>
-                <GraduationCap className="w-3 h-3 mr-1" />
-                {profile.level}
-              </Badge>
-              <Badge className="bg-white/90 text-gray-800 border-0 backdrop-blur-sm">
-                <Building className="w-3 h-3 mr-1" />
-                {profile.department}
-              </Badge>
-              <Badge className="bg-white/90 text-gray-800 border-0 backdrop-blur-sm">
-                ID: {profile.student_id}
-              </Badge>
-            </div>
-            
-            {profile.bio && (
-              <p className="text-gray-200 max-w-2xl">{profile.bio}</p>
-            )}
-          </motion.div>
-        </div>
-      </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
 
-      {/* Statistiques */}
+      {/* Statistiques - Design Clean */}
       <motion.div 
-        className="container mx-auto px-4 -mt-8 relative z-10"
+        className="container mx-auto px-4 -mt-4 relative z-10"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { icon: BookOpen, label: 'Emprunts actifs', value: stats?.active_borrowings || 0, color: 'text-blue-600' },
-            { icon: TrendingUp, label: 'Total emprunts', value: stats?.total_borrowings || 0, color: 'text-green-600' },
-            { icon: Award, label: 'Livres retournés', value: stats?.total_returned || 0, color: 'text-purple-600' },
-            { icon: Star, label: 'Avis donnés', value: stats?.total_reviews || 0, color: 'text-yellow-600' }
-          ].map((stat, index) => (
-            <motion.div
-              key={index}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center"
-              whileHover={{ y: -2, shadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index, duration: 0.3 }}
-            >
-              <stat.icon className={`w-6 h-6 mx-auto mb-2 ${stat.color}`} />
-              <div className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</div>
-              <div className="text-xs text-gray-600">{stat.label}</div>
-            </motion.div>
-          ))}
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 mb-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: BookOpen, label: 'Emprunts actifs', value: stats?.active_borrowings || 0 },
+              { icon: TrendingUp, label: 'Total emprunts', value: stats?.total_borrowings || 0 },
+              { icon: Award, label: 'Livres retournés', value: stats?.total_returned || 0 },
+              { icon: Star, label: 'Avis donnés', value: stats?.total_reviews || 0 }
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                className="text-center group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index, duration: 0.3 }}
+              >
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-2xl mb-4 group-hover:bg-gray-900 group-hover:text-white transition-all duration-300">
+                  <stat.icon className="w-8 h-8 text-gray-700 group-hover:text-white transition-colors duration-300" />
+                </div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </motion.div>
 
-      {/* Navigation par onglets */}
+      {/* Navigation par onglets - Design Clean */}
       <div className="container mx-auto px-4">
-        <div className="flex space-x-1 bg-white rounded-2xl p-1 shadow-sm border border-gray-100 mb-8">
-          {[
-            { id: 'profile', label: 'Profil', icon: User },
-            { id: 'preferences', label: 'Préférences', icon: Settings },
-            { id: 'security', label: 'Sécurité', icon: Shield }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium transition-all duration-200 ${
-                activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        <div className="flex justify-center mb-12">
+          <div className="flex space-x-2 bg-gray-100 rounded-2xl p-2">
+            {[
+              { id: 'profile', label: 'Profil', icon: User },
+              { id: 'preferences', label: 'Préférences', icon: Settings },
+              { id: 'security', label: 'Sécurité', icon: Shield }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-black text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Contenu des onglets */}
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-4 pb-40">
         {activeTab === 'profile' && (
           <ProfileTab
             profile={profile}
@@ -498,14 +510,14 @@ const ProfileTab = ({
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
-                  <User className="w-5 h-5 text-blue-600" />
+                  <User className="w-5 h-5 text-gray-700" />
                   <span>Informations personnelles</span>
                 </CardTitle>
                 {!editMode ? (
                   <Button
                     onClick={() => setEditMode(true)}
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                    className="bg-black hover:bg-gray-800 text-white rounded-xl"
                   >
                     <Edit3 className="w-4 h-4 mr-2" />
                     Modifier
@@ -516,7 +528,7 @@ const ProfileTab = ({
                       onClick={handleCancel}
                       size="sm"
                       variant="outline"
-                      className="rounded-xl"
+                      className="rounded-xl border-gray-300 hover:bg-gray-50"
                     >
                       <X className="w-4 h-4 mr-2" />
                       Annuler
@@ -525,7 +537,7 @@ const ProfileTab = ({
                       onClick={handleSave}
                       size="sm"
                       disabled={saving}
-                      className="bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                      className="bg-gray-800 hover:bg-black text-white rounded-xl"
                     >
                       {saving ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -683,7 +695,7 @@ const ProfileTab = ({
           <Card className="rounded-2xl border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <GraduationCap className="w-5 h-5 text-purple-600" />
+                <GraduationCap className="w-5 h-5 text-gray-700" />
                 <span>Informations académiques</span>
               </CardTitle>
             </CardHeader>
@@ -749,7 +761,7 @@ const ProfileTab = ({
           <Card className="rounded-2xl border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 text-red-600" />
+                <Shield className="w-5 h-5 text-gray-700" />
                 <span>Contact d'urgence</span>
               </CardTitle>
             </CardHeader>
@@ -788,7 +800,7 @@ const ProfileTab = ({
           <Card className="rounded-2xl border-0 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Heart className="w-5 h-5 text-pink-600" />
+                <Heart className="w-5 h-5 text-gray-700" />
                 <span>Genres préférés</span>
               </CardTitle>
             </CardHeader>
@@ -833,7 +845,7 @@ const PreferencesTab = ({
         <Card className="rounded-2xl border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Bell className="w-5 h-5 text-blue-600" />
+              <Bell className="w-5 h-5 text-gray-700" />
               <span>Notifications</span>
             </CardTitle>
           </CardHeader>
@@ -876,7 +888,7 @@ const PreferencesTab = ({
         <Card className="rounded-2xl border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Palette className="w-5 h-5 text-purple-600" />
+              <Palette className="w-5 h-5 text-gray-700" />
               <span>Apparence et langue</span>
             </CardTitle>
           </CardHeader>
@@ -938,7 +950,7 @@ const PreferencesTab = ({
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-xl"
+          className="bg-black hover:bg-gray-800 text-white px-8 py-2 rounded-xl"
         >
           {saving ? (
             <>
@@ -1043,7 +1055,7 @@ const SecurityTab = () => {
         <Card className="rounded-2xl border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Shield className="w-5 h-5 text-green-600" />
+              <Shield className="w-5 h-5 text-gray-700" />
               <span>Changer le mot de passe</span>
             </CardTitle>
           </CardHeader>
@@ -1090,7 +1102,7 @@ const SecurityTab = () => {
             <Button
               onClick={handleChangePassword}
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl mt-6"
+              className="w-full bg-black hover:bg-gray-800 text-white rounded-xl mt-6"
             >
               {loading ? (
                 <>
@@ -1107,24 +1119,24 @@ const SecurityTab = () => {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-0 shadow-sm">
+        <Card className="rounded-2xl border-0 shadow-sm mb-32">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-red-600">
+            <CardTitle className="flex items-center space-x-2 text-gray-800">
               <Shield className="w-5 h-5" />
               <span>Zone de danger</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-sm text-red-800 mb-3">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p className="text-sm text-gray-800 mb-3">
                 <strong>Supprimer mon compte</strong>
               </p>
-              <p className="text-sm text-red-700 mb-4">
+              <p className="text-sm text-gray-700 mb-4">
                 Cette action est irréversible. Votre compte sera désactivé et vous ne pourrez plus accéder à vos données.
               </p>
               <Button
                 variant="destructive"
-                className="rounded-xl"
+                className="bg-gray-800 hover:bg-black text-white rounded-xl border-0"
                 onClick={() => {
                   // Implémentation de la suppression de compte
                   console.log('Suppression de compte')

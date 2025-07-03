@@ -1850,6 +1850,9 @@ const AdminDashboard = () => {
                   <option value="student">Étudiant</option>
                   <option value="admin">Administrateur</option>
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  ⚠️ Le rôle sera automatiquement déterminé selon le domaine de l'email, indépendamment de votre sélection.
+                </p>
               </div>
 
               <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

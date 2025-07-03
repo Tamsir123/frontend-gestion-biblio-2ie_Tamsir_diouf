@@ -1,5 +1,5 @@
 
-import { ArrowRight, Linkedin, MapPin, Phone, Mail, Book, Clock, Users, Globe } from "lucide-react";
+import { ArrowRight, Linkedin, MapPin, Phone, Mail, Book, Clock, Users, Globe, Facebook, Youtube, Twitter, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -76,8 +76,9 @@ const Footer = () => {
       </div>
       
       <div className="w-full px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 pb-10 border-b border-gray-700">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 pb-10 ">
+          {/* Informations principales */}
+          <div className="lg:col-span-1">
             <div className="flex items-center mb-6">
               <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-white p-2 mr-4 shadow-lg">
                 <img 
@@ -111,28 +112,8 @@ const Footer = () => {
                 <span>bibliotheque@2ie-edu.org</span>
               </div>
             </div>
-            
-            {/* Social Links */}
-            <div className="flex space-x-4">
-              <a 
-                href="https://www.linkedin.com/school/2ie-edu/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white transition-all hover:bg-blue-700 hover:scale-110"
-              >
-                <Linkedin size={20} />
-              </a>
-              <a 
-                href="https://www.2ie-edu.org" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white transition-all hover:bg-green-700 hover:scale-110"
-              >
-                <Globe size={20} />
-              </a>
-            </div>
           </div>
-          
+
           {/* Services */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-white flex items-center">
@@ -228,7 +209,80 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="pt-8 flex flex-col md:flex-row justify-between items-center">
+        {/* Réseaux Sociaux - Section horizontale en bas */}
+        <div className="py-8 ">
+          <div className="text-center mb-8">
+            <h3 className="text-xl font-bold text-white flex items-center justify-center mb-2">
+              <Globe className="w-6 h-6 mr-3 text-blue-400" />
+              Suivez-nous sur les réseaux sociaux
+            </h3>
+            <p className="text-gray-400 text-sm">Restez connectés avec la communauté E-Library 2iE</p>
+          </div>
+          
+          <div className="flex justify-center items-center gap-6">
+            <a 
+              href="https://www.linkedin.com/school/2ie-edu/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg hover:shadow-blue-500/25 group"
+              title="LinkedIn"
+            >
+              <Linkedin size={24} className="group-hover:scale-110 transition-transform" />
+            </a>
+            
+            <a 
+              href="https://www.facebook.com/2iEcampus" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-14 h-14 rounded-full bg-blue-800 hover:bg-blue-900 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg hover:shadow-blue-800/25 group"
+              title="Facebook"
+            >
+              <Facebook size={24} className="group-hover:scale-110 transition-transform" />
+            </a>
+            
+            <a 
+              href="https://www.youtube.com/@2iEcampus" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg hover:shadow-red-500/25 group"
+              title="YouTube"
+            >
+              <Youtube size={24} className="group-hover:scale-110 transition-transform" />
+            </a>
+            
+            <a 
+              href="https://twitter.com/2iEcampus" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg hover:shadow-sky-500/25 group"
+              title="Twitter"
+            >
+              <Twitter size={24} className="group-hover:scale-110 transition-transform" />
+            </a>
+            
+            <a 
+              href="https://www.instagram.com/2ie_campus" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg hover:shadow-purple-500/25 group"
+              title="Instagram"
+            >
+              <Instagram size={24} className="group-hover:scale-110 transition-transform" />
+            </a>
+            
+            <a 
+              href="https://www.2ie-edu.org" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="w-14 h-14 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg hover:shadow-green-500/25 group"
+              title="Site Web Officiel"
+            >
+              <Globe size={24} className="group-hover:scale-110 transition-transform" />
+            </a>
+          </div>
+        </div>
+        
+        {/* <div className="pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm mb-4 md:mb-0 flex items-center">
             <span>© {new Date().getFullYear()} E-Library 2iE. Tous droits réservés.</span>
             <span className="mx-2 text-gray-600">|</span>
@@ -241,7 +295,7 @@ const Footer = () => {
             <Link to="/privacy-policy" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Politique de confidentialité</Link>
             <Link to="/terms" className="text-sm text-gray-400 hover:text-blue-400 transition-colors">Conditions d'utilisation</Link>
           </div>
-        </div>
+        </div> */}
       </div>
     </footer>
   );

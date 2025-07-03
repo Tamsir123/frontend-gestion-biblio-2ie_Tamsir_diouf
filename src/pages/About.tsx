@@ -6,12 +6,73 @@ import { useEffect } from 'react';
 import PageLayout from '@/components/PageLayout';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import InteractiveBentoGallery from '@/components/ui/interactive-bento-gallery';
 
 const About = () => {
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Données pour la galerie interactive
+  const mediaItems = [
+    {
+      id: 1,
+      type: "image",
+      title: "Salle de Lecture Principale",
+      desc: "200 places dans un environnement calme et moderne",
+      url: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&h=600&fit=crop",
+      span: "md:col-span-2 md:row-span-3 sm:col-span-2 sm:row-span-3",
+    },
+    {
+      id: 2,
+      type: "video",
+      title: "Visite Virtuelle",
+      desc: "Découvrez nos espaces d'étude modernes",
+      url: "https://videos.pexels.com/video-files/5198159/5198159-sd_640_360_25fps.mp4",
+      span: "md:col-span-2 md:row-span-2 col-span-1 sm:col-span-2 sm:row-span-2",
+    },
+    {
+      id: 3,
+      type: "image",
+      title: "Espace Collaboratif",
+      desc: "Zones de travail en groupe équipées",
+      url: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=600&fit=crop",
+      span: "md:col-span-1 md:row-span-2 sm:col-span-1 sm:row-span-2",
+    },
+    {
+      id: 4,
+      type: "image",
+      title: "Collection Numérique",
+      desc: "15,000+ ressources en ligne",
+      url: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop",
+      span: "md:col-span-1 md:row-span-2 sm:col-span-1 sm:row-span-2",
+    },
+    {
+      id: 5,
+      type: "image",
+      title: "Carrels de Recherche",
+      desc: "40 espaces individuels pour la recherche",
+      url: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=600&fit=crop",
+      span: "md:col-span-1 md:row-span-2 sm:col-span-1 sm:row-span-2",
+    },
+    {
+      id: 6,
+      type: "image",
+      title: "Équipements Modernes",
+      desc: "Technologies de pointe pour vos études",
+      url: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
+      span: "md:col-span-2 md:row-span-2 sm:col-span-2 sm:row-span-2",
+    },
+    {
+      id: 7,
+      type: "image",
+      title: "Centre de Formation",
+      desc: "Ateliers et formations documentaires",
+      url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=600&fit=crop",
+      span: "md:col-span-1 md:row-span-3 sm:col-span-1 sm:row-span-2",
+    },
+  ];
   
   return (
     <PageLayout>
@@ -173,6 +234,20 @@ const About = () => {
                 </div>
               </motion.div>
             </div>
+
+            {/* Section Galerie Interactive */}
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="my-20"
+            >
+              <InteractiveBentoGallery
+                mediaItems={mediaItems}
+                title="Découvrez E-Library 2iE"
+                description="Explorez nos espaces modernes et nos équipements de pointe à travers cette galerie interactive"
+              />
+            </motion.div>
             
             <div className="mt-16 pt-8 border-t border-gray-200">
               <Link to="/careers" className="inline-flex items-center px-5 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all group">

@@ -203,9 +203,37 @@ const Projects = () => {
             Notre Collection<br />
             <span className="text-2xl md:text-3xl lg:text-4xl font-light">d'Excellence</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed mb-6">
             Découvrez une sélection premium de livres académiques et de recherche
           </p>
+          
+          {/* Section d'introduction interactive */}
+          <motion.div 
+            className="max-w-3xl mx-auto mb-8 p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-lg"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-gradient-to-r from-gray-400 to-gray-600 rounded-full animate-pulse"></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-gray-500 to-gray-700 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-3 h-3 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Navigation Interactive
+            </h3>
+            <p className="text-gray-700 leading-relaxed">
+              <span className="font-medium">Naviguez facilement</span> dans notre catalogue : utilisez les 
+              <span className="inline-flex items-center mx-2 px-2 py-1 bg-gray-100 rounded-md text-sm">
+                <ChevronLeft className="w-3 h-3 mr-1" />
+                flèches
+                <ChevronRight className="w-3 h-3 ml-1" />
+              </span>
+              sur ordinateur ou <span className="font-medium">glissez horizontalement</span> sur mobile pour découvrir nos ouvrages.
+            </p>
+          </motion.div>
         </motion.div>
 
         {/* Carrousel premium */}

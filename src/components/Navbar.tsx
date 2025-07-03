@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn, Shield, LogOut, Settings, UserCircle } from "lucide-react";
+import { Menu, X, ChevronDown, Search, User, ShoppingCart, Book, Users, MapPin, Phone, LogIn, Shield, LogOut, Settings, UserCircle, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -183,6 +183,15 @@ const Navbar = () => {
                 
                 <NavigationMenuItem>
                   <NavigationMenuLink 
+                    onClick={() => navigate('/events')}
+                    className={cn(navigationMenuTriggerStyle(), isScrolled ? "text-gray-700 hover:text-black hover:bg-gray-100" : "text-gray-100 hover:text-white bg-transparent hover:bg-white/10", "cursor-pointer")}
+                  >
+                    Événements
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                
+                <NavigationMenuItem>
+                  <NavigationMenuLink 
                     onClick={() => navigate('/about')}
                     className={cn(navigationMenuTriggerStyle(), isScrolled ? "text-gray-700 hover:text-black hover:bg-gray-100" : "text-gray-100 hover:text-white bg-transparent hover:bg-white/10", "cursor-pointer")}
                   >
@@ -348,6 +357,19 @@ const Navbar = () => {
           >
             <Users className="w-4 h-4 mr-3" />
             Services
+          </button>
+          
+          {/* Événements */}
+          <button 
+            onClick={() => {
+              navigate('/events');
+              setIsMenuOpen(false);
+              window.scrollTo(0, 0);
+            }}
+            className={cn("flex w-full items-center px-3 py-3 rounded-lg font-medium", isScrolled ? "text-gray-700 hover:bg-gray-100 hover:text-black" : "text-gray-200 hover:bg-white/10 hover:text-white")}
+          >
+            <Calendar className="w-4 h-4 mr-3" />
+            Événements
           </button>
           
           <button 

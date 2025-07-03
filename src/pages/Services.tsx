@@ -177,6 +177,126 @@ const Services = () => {
           ))}
         </motion.div>
 
+        {/* Section avec Images Illustratives */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mb-20"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Votre Environnement d'Étude
+            </h2>
+            <p className="text-lg text-gray-600">
+              Découvrez nos espaces modernes et nos équipements de pointe pour votre réussite
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Recherche Documentaire */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="relative group overflow-hidden rounded-2xl shadow-lg"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop"
+                alt="Recherche Documentaire"
+                className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent"></div>
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="text-xl font-bold mb-2">Recherche Avancée</h3>
+                <p className="text-sm opacity-90">Bases de données scientifiques</p>
+              </div>
+            </motion.div>
+
+            {/* Espaces d'Étude */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="relative group overflow-hidden rounded-2xl shadow-lg"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=400&fit=crop"
+                alt="Espaces d'Étude"
+                className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-green-900/80 to-transparent"></div>
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="text-xl font-bold mb-2">Espaces Modernes</h3>
+                <p className="text-sm opacity-90">400 places de lecture</p>
+              </div>
+            </motion.div>
+
+            {/* Technologies */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+              className="relative group overflow-hidden rounded-2xl shadow-lg"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop"
+                alt="Technologies Modernes"
+                className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-900/80 to-transparent"></div>
+              <div className="absolute bottom-4 left-4 text-white">
+                <h3 className="text-xl font-bold mb-2">Tech Avancée</h3>
+                <p className="text-sm opacity-90">Équipements numériques</p>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Section Statistiques avec Visuels */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mb-20 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-8 md:p-12"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                E-Library 2iE en Chiffres
+              </h2>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">15,000+</div>
+                  <div className="text-sm text-gray-600">Ressources Numériques</div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                  <div className="text-3xl font-bold text-green-600 mb-2">2,800+</div>
+                  <div className="text-sm text-gray-600">Étudiants Actifs</div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">25+</div>
+                  <div className="text-sm text-gray-600">Bases de Données</div>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                  <div className="text-3xl font-bold text-orange-600 mb-2">400</div>
+                  <div className="text-sm text-gray-600">Places de Lecture</div>
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <img 
+                src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&h=600&fit=crop"
+                alt="Bibliothèque Moderne"
+                className="w-full h-80 object-cover rounded-2xl shadow-xl"
+              />
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                24/7
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Espaces Section */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -249,54 +369,76 @@ const Services = () => {
             </p>
           </div>
 
-          <div className="max-w-2xl mx-auto">
-            <Card>
-              <CardContent className="p-0">
-                {horaires.map((horaire, index) => (
-                  <div key={index} className={`flex justify-between items-center p-6 ${index !== horaires.length - 1 ? 'border-b border-gray-200' : ''}`}>
-                    <div className="flex items-center">
-                      <Clock className="w-5 h-5 text-blue-600 mr-3" />
-                      <span className="font-medium text-gray-900">{horaire.jour}</span>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-gray-700">{horaire.heures}</span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        horaire.status === 'Ouvert' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {horaire.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        </motion.div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Image d'illustration */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+              className="relative"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1545389336-cf090694435e?w=800&h=600&fit=crop"
+                alt="Bibliothèque Ouverture"
+                className="w-full h-96 object-cover rounded-2xl shadow-xl"
+              />
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/20 to-transparent rounded-2xl"></div>
+              <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl p-4">
+                <div className="flex items-center text-green-600 mb-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                  <span className="font-medium text-sm">Actuellement Ouvert</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </motion.div>
 
-        {/* CTA Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 md:p-12 text-center text-white"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Besoin d'Aide ?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Notre équipe est là pour vous accompagner dans vos recherches et vous former aux outils documentaires.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="secondary" size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              <HelpCircle className="w-5 h-5 mr-2" />
-              Demander de l'Aide
-            </Button>
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
-              <Users className="w-5 h-5 mr-2" />
-              Réserver une Formation
-            </Button>
+            {/* Tableau des horaires */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
+                <CardContent className="p-0">
+                  {horaires.map((horaire, index) => (
+                    <div key={index} className={`flex justify-between items-center p-6 ${index !== horaires.length - 1 ? 'border-b border-gray-100' : ''} hover:bg-blue-50/50 transition-colors`}>
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                          <Clock className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-900 text-lg">{horaire.jour}</span>
+                          <div className="text-sm text-gray-500">Bibliothèque</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-medium text-gray-900 mb-1">{horaire.heures}</div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          horaire.status === 'Ouvert' 
+                            ? 'bg-green-100 text-green-700 border border-green-200' 
+                            : 'bg-red-100 text-red-700 border border-red-200'
+                        }`}>
+                          {horaire.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+              
+              {/* Info supplémentaire */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="flex items-center text-blue-800 mb-2">
+                  <Globe className="w-5 h-5 mr-2" />
+                  <span className="font-medium">Accès 24h/24 aux ressources numériques</span>
+                </div>
+                <p className="text-sm text-blue-700">
+                  Vos ressources électroniques sont disponibles en ligne à tout moment avec votre compte étudiant.
+                </p>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>

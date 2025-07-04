@@ -34,7 +34,7 @@ const Projects = () => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/books?limit=8');
+        const response = await fetch('${import.meta.env.VITE_API_URL}/api/books?limit=8');
         if (response.ok) {
           const data = await response.json();
           const booksArray = Array.isArray(data?.data?.books) ? data.data.books : [];
@@ -81,12 +81,12 @@ const Projects = () => {
     // Priorité 1: Image réelle uploadée lors de l'ajout du livre
     if (book.cover_image) {
       if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
-        return `http://localhost:5000/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`;
+        return `${import.meta.env.VITE_API_URL}/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`;
       }
       if (book.cover_image.startsWith('http')) {
         return book.cover_image;
       }
-      return `http://localhost:5000/uploads/${book.cover_image}`;
+      return `${import.meta.env.VITE_API_URL}/uploads/${book.cover_image}`;
     }
 
     // Priorité 2: Images spécifiques par livre

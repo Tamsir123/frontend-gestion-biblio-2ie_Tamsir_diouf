@@ -82,7 +82,7 @@ export const EnhancedBookDetailsModal: React.FC<EnhancedBookDetailsModalProps> =
       if (book.cover_image.startsWith('http')) {
         return book.cover_image;
       }
-      return `http://localhost:5000${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`;
+      return `${import.meta.env.VITE_API_URL}${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`;
     }
     return `https://picsum.photos/400/600?random=${book.id}`;
   };

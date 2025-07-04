@@ -100,7 +100,7 @@ const AdminBooks = () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/books', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -127,7 +127,7 @@ const AdminBooks = () => {
   const handleAddBook = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/books', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +163,7 @@ const AdminBooks = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/books/${editingBook.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${editingBook.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ const AdminBooks = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${bookId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

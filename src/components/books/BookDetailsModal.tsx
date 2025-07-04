@@ -140,7 +140,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
                       <div className="relative group">
                         {book.cover_image ? (
                           <motion.img
-                            src={`http://localhost:5000${book.cover_image}`}
+                            src={`${import.meta.env.VITE_API_URL}${book.cover_image}`}
                             alt={book.title}
                             className="w-full h-80 object-cover"
                             onLoad={() => setImageLoaded(true)}

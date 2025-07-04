@@ -198,13 +198,13 @@ const AdminDashboard = () => {
       
       // Récupérer les statistiques réelles depuis l'API
       const [booksRes, usersRes, borrowingsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/books', {
+        fetch('${import.meta.env.VITE_API_URL}/api/books', {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:5000/api/users', {
+        fetch('${import.meta.env.VITE_API_URL}/api/users', {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null), // En cas d'erreur, continuer sans les users
-        fetch('http://localhost:5000/api/borrowings', {
+        fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null) // En cas d'erreur, continuer sans les emprunts
       ])
@@ -303,9 +303,9 @@ const AdminDashboard = () => {
     setBooksLoading(true)
     try {
       console.log('=== RÉCUPÉRATION DES LIVRES ===')
-      console.log('URL:', 'http://localhost:5000/api/books')
+      console.log('URL:', '${import.meta.env.VITE_API_URL}/api/books')
       
-      const res = await fetch('http://localhost:5000/api/books')
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/books')
       console.log('Statut de la réponse:', res.status, res.statusText)
       
       const data = await res.json()
@@ -347,9 +347,9 @@ const AdminDashboard = () => {
         return
       }
 
-      console.log('URL:', 'http://localhost:5000/api/borrowings')
+      console.log('URL:', '${import.meta.env.VITE_API_URL}/api/borrowings')
       
-      const res = await fetch('http://localhost:5000/api/borrowings', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -415,9 +415,9 @@ const AdminDashboard = () => {
         }
       }
 
-      console.log('URL:', 'http://localhost:5000/api/users')
+      console.log('URL:', '${import.meta.env.VITE_API_URL}/api/users')
       
-      const res = await fetch('http://localhost:5000/api/users', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -465,7 +465,7 @@ const AdminDashboard = () => {
         return
       }
 
-      const res = await fetch('http://localhost:5000/api/users', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/users', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -516,7 +516,7 @@ const AdminDashboard = () => {
         return
       }
 
-      const res = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -560,7 +560,7 @@ const AdminDashboard = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -595,7 +595,7 @@ const AdminDashboard = () => {
       if (!token) return
 
       // Récupérer les statistiques de l'utilisateur
-      const statsRes = await fetch(`http://localhost:5000/api/users/${userId}/stats`, {
+      const statsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -608,7 +608,7 @@ const AdminDashboard = () => {
       }
 
       // Récupérer l'historique des emprunts
-      const borrowingsRes = await fetch(`http://localhost:5000/api/users/${userId}/borrowings`, {
+      const borrowingsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}/borrowings`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -664,10 +664,10 @@ const AdminDashboard = () => {
       }
 
       console.log('Données à envoyer:', Object.fromEntries(formData))
-      console.log('URL de requête:', 'http://localhost:5000/api/books')
+      console.log('URL de requête:', '${import.meta.env.VITE_API_URL}/api/books')
       console.log('Headers:', { 'Authorization': `Bearer ${token.substring(0, 20)}...` })
 
-      const res = await fetch('http://localhost:5000/api/books', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/books', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -747,7 +747,7 @@ const AdminDashboard = () => {
         formData.append('cover_image', coverImageFile)
       }
 
-      const res = await fetch(`http://localhost:5000/api/books/${selectedBook.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${selectedBook.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -795,7 +795,7 @@ const AdminDashboard = () => {
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${bookId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

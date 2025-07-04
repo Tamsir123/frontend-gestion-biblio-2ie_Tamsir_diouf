@@ -350,7 +350,7 @@ const BookDetails = () => {
   const fetchBookDetails = async (bookId: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${bookId}`)
       if (response.ok) {
         const data = await response.json()
         setBook(data.data || data)
@@ -367,7 +367,7 @@ const BookDetails = () => {
 
   const fetchBookReviews = async (bookId: number) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}/reviews`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${bookId}/reviews`)
       if (response.ok) {
         const data = await response.json()
         setReviews(data.reviews || [])
@@ -396,7 +396,7 @@ const BookDetails = () => {
       dueDate.setDate(dueDate.getDate() + 15)
       const dueDateString = dueDate.toISOString().split('T')[0] // Format YYYY-MM-DD
 
-      const response = await fetch('http://localhost:5000/api/borrowings', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -445,11 +445,11 @@ const BookDetails = () => {
       
       // Si le chemin commence par /uploads/ ou uploads/, construire l'URL complète
       if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
-        imageUrl = `http://localhost:5000${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`;
+        imageUrl = `${import.meta.env.VITE_API_URL}${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`;
       }
       // Si ce n'est pas une URL complète, construire l'URL avec le serveur backend
       else if (!book.cover_image.startsWith('http')) {
-        imageUrl = `http://localhost:5000/uploads/covers/${book.cover_image}`;
+        imageUrl = `${import.meta.env.VITE_API_URL}/uploads/covers/${book.cover_image}`;
       }
       
       console.log('URL image finale:', imageUrl);
@@ -555,7 +555,7 @@ const BookDetails = () => {
     setSubmittingReview(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5000/api/books/${id}/reviews`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${id}/reviews`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

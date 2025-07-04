@@ -54,7 +54,7 @@ const MesEmprunts = () => {
       if (!token) return
 
       // Récupérer les avis de l'utilisateur
-      const response = await fetch('http://localhost:5000/api/reviews/my-reviews', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/reviews/my-reviews', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -86,7 +86,7 @@ const MesEmprunts = () => {
         console.error('Aucun token trouvé. Veuillez vous reconnecter.')
         return
       }
-      const response = await fetch('http://localhost:5000/api/borrowings/my-borrowings', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings/my-borrowings', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -186,7 +186,7 @@ const MesEmprunts = () => {
       const newDueDate = new Date()
       newDueDate.setDate(newDueDate.getDate() + 14)
       
-      const response = await fetch(`http://localhost:5000/api/borrowings/${borrowingId}/renew`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/borrowings/${borrowingId}/renew`, {
         method: 'PUT', // Correction: PUT au lieu de POST
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -236,7 +236,7 @@ const MesEmprunts = () => {
         return
       }
 
-      const response = await fetch(`http://localhost:5000/api/borrowings/${borrowingId}/return`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/borrowings/${borrowingId}/return`, {
         method: 'PUT', // Correction: PUT au lieu de POST
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -337,7 +337,7 @@ const MesEmprunts = () => {
     if (coverImage) {
       // Si l'image commence par '/', c'est un chemin relatif du serveur
       if (coverImage.startsWith('/')) {
-        return `http://localhost:5000${coverImage}`
+        return `${import.meta.env.VITE_API_URL}${coverImage}`
       }
       // Sinon, c'est déjà une URL complète
       return coverImage

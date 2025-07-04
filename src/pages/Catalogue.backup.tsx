@@ -71,7 +71,7 @@ const Catalogue = () => {
   const fetchBooks = useCallback(async () => {
     try {
       setLoading(true)
-      let url = 'http://localhost:5000/api/books?'
+      let url = '${import.meta.env.VITE_API_URL}/api/books?'
       if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`
       if (selectedGenre !== 'all') url += `genre=${encodeURIComponent(selectedGenre)}&`
       if (selectedAuthor !== 'all') url += `author=${encodeURIComponent(selectedAuthor)}&`
@@ -109,7 +109,7 @@ const Catalogue = () => {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/books/genres')
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/genres')
       if (response.ok) {
         const data = await response.json()
         let genresArr = []
@@ -145,7 +145,7 @@ const Catalogue = () => {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/books/popular-authors')
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/popular-authors')
       if (response.ok) {
         const data = await response.json()
         let authorsArr = []
@@ -204,7 +204,7 @@ const Catalogue = () => {
       console.log('Image trouvée pour', book.title, ':', book.cover_image)
       // Si c'est un chemin relatif, construire l'URL complète vers le serveur
       if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
-        const imageUrl = `http://localhost:5000/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`
+        const imageUrl = `${import.meta.env.VITE_API_URL}/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`
         console.log('URL image construite:', imageUrl)
         return imageUrl
       }
@@ -214,7 +214,7 @@ const Catalogue = () => {
         return book.cover_image
       }
       // Sinon, construire l'URL
-      const imageUrl = `http://localhost:5000/uploads/${book.cover_image}`
+      const imageUrl = `${import.meta.env.VITE_API_URL}/uploads/${book.cover_image}`
       console.log('URL image construite (fallback):', imageUrl)
       return imageUrl
     }
@@ -710,7 +710,7 @@ const Catalogue = () => {
                       comment_text: comments || ''
                     }
                     console.log('POST /api/borrowings body:', body)
-                    const res = await fetch('http://localhost:5000/api/borrowings', {
+                    const res = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',

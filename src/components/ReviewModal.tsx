@@ -49,7 +49,7 @@ const ReviewModal = ({ isOpen, onClose, book, onReviewSubmitted }: ReviewModalPr
         return
       }
 
-      const response = await fetch(`http://localhost:5000/api/books/${book.id}/reviews`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${book.id}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ const ReviewModal = ({ isOpen, onClose, book, onReviewSubmitted }: ReviewModalPr
   const getBookImage = (coverImage?: string) => {
     if (coverImage) {
       if (coverImage.startsWith('/')) {
-        return `http://localhost:5000${coverImage}`
+        return `${import.meta.env.VITE_API_URL}${coverImage}`
       }
       return coverImage
     }

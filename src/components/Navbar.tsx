@@ -78,7 +78,7 @@ const Navbar = () => {
   const getAvatarUrl = (user: UserData | null) => {
     if (user?.profile_image) {
       return user.profile_image.startsWith('/') 
-        ? `http://localhost:5000${user.profile_image}`
+        ? `${import.meta.env.VITE_API_URL}${user.profile_image}`
         : user.profile_image;
     }
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&size=40&background=000000&color=ffffff&bold=true`;

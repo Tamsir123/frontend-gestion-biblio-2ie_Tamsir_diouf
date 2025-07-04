@@ -66,7 +66,7 @@ const Catalogue = () => {
   const fetchBooks = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:5000/api/books')
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books')
       if (response.ok) {
         const data = await response.json()
         setBooks(data.books || data)
@@ -136,7 +136,7 @@ const Catalogue = () => {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/books/genres')
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/genres')
       if (response.ok) {
         const data = await response.json()
         setGenres(data.genres || [])
@@ -148,7 +148,7 @@ const Catalogue = () => {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/books/popular-authors')
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/popular-authors')
       if (response.ok) {
         const data = await response.json()
         setAuthors(data.authors || [])

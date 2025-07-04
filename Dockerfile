@@ -4,16 +4,17 @@ FROM node:18-alpine as build
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Copier les fichiers package.json du frontend
-COPY frontend-gestion-biblio/package*.json ./
+# Copier les fichiers package.json
+COPY package*.json ./
 
 # Installer toutes les dépendances (y compris dev)
 RUN npm ci
 
-# Copier le reste du code frontend
-COPY frontend-gestion-biblio/ .
+# Copier le reste du code
+COPY . .
 
-# Build de l'application
+# Build de l'application avec plus de mémoire
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Stage 2: Production avec Nginx
@@ -23,7 +24,7 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copier la configuration nginx personnalisée
-COPY frontend-gestion-biblio/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exposer le port
 EXPOSE 80

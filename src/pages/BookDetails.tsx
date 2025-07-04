@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import ImageDebugger from '@/components/ImageDebugger'
 import { motion } from 'framer-motion'
 import { useToast } from '@/hooks/use-toast'
 
@@ -440,43 +441,41 @@ const BookDetails = () => {
     
     // Priorité 1: Image réelle uploadée lors de l'ajout du livre
     if (book.cover_image) {
+      let imageUrl = book.cover_image;
+      
       // Si le chemin commence par /uploads/ ou uploads/, construire l'URL complète
       if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
-        const imageUrl = `http://localhost:5000${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`
-        console.log('URL image construite:', imageUrl)
-        return imageUrl
+        imageUrl = `http://localhost:5000${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`;
       }
-      // Si c'est déjà une URL complète
-      if (book.cover_image.startsWith('http')) {
-        console.log('URL image complète détectée:', book.cover_image)
-        return book.cover_image
+      // Si ce n'est pas une URL complète, construire l'URL avec le serveur backend
+      else if (!book.cover_image.startsWith('http')) {
+        imageUrl = `http://localhost:5000/uploads/covers/${book.cover_image}`;
       }
-      // Sinon, construire l'URL
-      const imageUrl = `http://localhost:5000/uploads/${book.cover_image}`
-      console.log('URL image construite (fallback):', imageUrl)
-      return imageUrl
+      
+      console.log('URL image finale:', imageUrl);
+      return imageUrl;
     }
 
-    console.log('Pas d\'image pour', book.title, ', utilisation des images par défaut')
+    console.log('Pas d\'image pour', book.title, ', utilisation des images par défaut');
 
-    // Priorité 2: Images spécifiques par livre (pour les anciens livres)
+    // Priorité 2: Images spécifiques par livre en haute résolution (pour les anciens livres)
     const bookImages: { [key: number]: string } = {
-      1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=600&fit=crop', // IA
-      2: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop', // Histoire Afrique
-      3: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=400&h=600&fit=crop', // Mathématiques
-      4: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop', // Littérature
-      5: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=600&fit=crop', // Génie Civil
-      6: 'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=400&h=600&fit=crop', // Économie
-      7: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=600&fit=crop', // Programmation
-      8: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=600&fit=crop', // Énergies renouvelables
-      9: 'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=400&h=600&fit=crop', // Chimie
-      10: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=600&fit=crop', // Sociologie urbaine
-      11: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=600&fit=crop', // Mécanique des fluides
-      12: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=600&fit=crop'  // Marketing digital
+      1: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&h=1200&fit=crop&q=80', // IA
+      2: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=1200&fit=crop&q=80', // Histoire Afrique
+      3: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=800&h=1200&fit=crop&q=80', // Mathématiques
+      4: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&h=1200&fit=crop&q=80', // Littérature
+      5: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=1200&fit=crop&q=80', // Génie Civil
+      6: 'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800&h=1200&fit=crop&q=80', // Économie
+      7: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=1200&fit=crop&q=80', // Programmation
+      8: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&h=1200&fit=crop&q=80', // Énergies renouvelables
+      9: 'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=800&h=1200&fit=crop&q=80', // Chimie
+      10: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=1200&fit=crop&q=80', // Sociologie urbaine
+      11: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=1200&fit=crop&q=80', // Mécanique des fluides
+      12: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=1200&fit=crop&q=80'  // Marketing digital
     }
 
-    // Priorité 3: Images par genre comme fallback final
-    return bookImages[book.id] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop'
+    // Priorité 3: Images par genre comme fallback final (haute résolution)
+    return bookImages[book.id] || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=800&h=1200&fit=crop&q=80'
   }
 
   const copyISBN = () => {
@@ -703,14 +702,10 @@ const BookDetails = () => {
             {/* Section Image */}
             <div className="relative">
               <div className="aspect-[3/4] relative group overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
-                <img
+                <ImageDebugger
                   src={getBookImage(book)}
                   alt={book.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop';
-                  }}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>

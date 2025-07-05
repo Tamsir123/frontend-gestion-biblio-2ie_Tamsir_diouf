@@ -81,7 +81,7 @@ const ProfilNew = () => {
     }
 
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/user/profile', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/profile`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -115,7 +115,7 @@ const ProfilNew = () => {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/user/profile', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -184,7 +184,7 @@ const ProfilNew = () => {
       const formData = new FormData()
       formData.append('profile_image', file)
 
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/user/profile/image', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/profile/image`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -1008,7 +1008,7 @@ const SecurityTab = () => {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/user/profile/password', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/user/profile/password`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -70,7 +70,7 @@ const Catalogue = () => {
   const fetchBooks = useCallback(async () => {
     try {
       setLoading(true)
-      let url = '${import.meta.env.VITE_API_URL}/api/books?'
+      let url = `${import.meta.env.VITE_API_URL}/api/books?`
       if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`
       if (selectedGenre !== 'all') url += `genre=${encodeURIComponent(selectedGenre)}&`
       if (selectedAuthor !== 'all') url += `author=${encodeURIComponent(selectedAuthor)}&`
@@ -108,7 +108,7 @@ const Catalogue = () => {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/genres')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/genres`)
       if (response.ok) {
         const data = await response.json()
         let genresArr = []
@@ -144,7 +144,7 @@ const Catalogue = () => {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/popular-authors')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/popular-authors`)
       if (response.ok) {
         const data = await response.json()
         let authorsArr = []

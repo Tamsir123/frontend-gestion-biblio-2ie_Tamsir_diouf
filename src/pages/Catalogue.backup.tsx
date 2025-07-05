@@ -240,7 +240,7 @@ const Catalogue = () => {
     // Priorité 3: Images par genre comme fallback
     const genreImages: { [key: string]: string } = {
       'Technologie': 'https://images.unsplash.com/photo-1518709268805-4e9042af2ea0?w=300&h=400&fit=crop',
-      'Histoire': 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop',
+      'Histoire': 'https://images.unsplash.com/photo-1481627834876-b783e8f5570?w=300&h=400&fit=crop',
       'Sciences': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
       'Littérature': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop',
       'Ingénierie': 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=300&h=400&fit=crop',
@@ -334,7 +334,7 @@ const Catalogue = () => {
               <div className="text-3xl font-bold text-purple-400">{new Set(books.map(book => book.genre)).size}</div>
               <div className="text-sm text-gray-300 uppercase tracking-wide">Genres</div>
             </div>
-          </motion.div>
+          </motion.div> {/* fermeture du motion.div statistiques en temps réel */}
         </motion.div>
       </div>
 
@@ -421,81 +421,56 @@ const Catalogue = () => {
             </div>
 
             {/* Panneau de filtres moderne */}
-            <AnimatePresence>
-              {showFilters && (
-                <motion.div 
-                  className="mt-8 p-8 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-xl"
-                  initial={{ height: 0, opacity: 0, y: -20 }}
-                  animate={{ height: "auto", opacity: 1, y: 0 }}
-                  exit={{ height: 0, opacity: 0, y: -20 }}
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Genre</label>
-                      <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-                        <SelectTrigger className="bg-white border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 transition-all">
-                          <SelectValue placeholder="Tous les genres" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 rounded-xl shadow-xl">
-                          <SelectItem value="all" className="rounded-lg">Tous les genres</SelectItem>
-                          {genres.map((genre) => (
-                            <SelectItem key={genre} value={genre} className="rounded-lg">{genre}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Auteur</label>
-                      <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-                        <SelectTrigger className="bg-white border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500/20 transition-all">
-                          <SelectValue placeholder="Tous les auteurs" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 rounded-xl shadow-xl">
-                          <SelectItem value="all" className="rounded-lg">Tous les auteurs</SelectItem>
-                          {authors.map((author) => (
-                            <SelectItem key={author} value={author} className="rounded-lg">{author}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Trier par</label>
-                      <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="bg-white border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500/20 transition-all">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-200 rounded-xl shadow-xl">
-                          <SelectItem value="title" className="rounded-lg">Titre A-Z</SelectItem>
-                          <SelectItem value="author" className="rounded-lg">Auteur A-Z</SelectItem>
-                          <SelectItem value="year" className="rounded-lg">Année (récent)</SelectItem>
-                          <SelectItem value="availability" className="rounded-lg">Disponibilité</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+            {showFilters && (
+              <motion.div 
+                className="mt-8 p-8 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-xl"
+                initial={{ height: 0, opacity: 0, y: -20 }}
+                animate={{ height: "auto", opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Genre</label>
+                    <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                      <SelectTrigger className="bg-white border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 transition-all">
+                        <SelectValue placeholder="Tous les genres" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-200 rounded-xl shadow-xl">
+                        <SelectItem value="all" className="rounded-lg">Tous les genres</SelectItem>
+                        {genres.map((genre) => (
+                          <SelectItem key={genre} value={genre} className="rounded-lg">{genre}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </motion.div>
-              )}
-          </div>
-        </motion.div>
-
-        {/* Grille des livres moderne */}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Trier par
-                    </label>
+                  
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Auteur</label>
+                    <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
+                      <SelectTrigger className="bg-white border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500/20 transition-all">
+                        <SelectValue placeholder="Tous les auteurs" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-200 rounded-xl shadow-xl">
+                        <SelectItem value="all" className="rounded-lg">Tous les auteurs</SelectItem>
+                        {authors.map((author) => (
+                          <SelectItem key={author} value={author} className="rounded-lg">{author}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Trier par</label>
                     <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="border-gray-200 focus:border-black rounded-lg">
+                      <SelectTrigger className="bg-white border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500/20 transition-all">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="title">Titre A-Z</SelectItem>
-                        <SelectItem value="author">Auteur A-Z</SelectItem>
-                        <SelectItem value="year">Année (récent)</SelectItem>
-                        <SelectItem value="availability">Disponibilité</SelectItem>
+                      <SelectContent className="bg-white border-gray-200 rounded-xl shadow-xl">
+                        <SelectItem value="title" className="rounded-lg">Titre A-Z</SelectItem>
+                        <SelectItem value="author" className="rounded-lg">Auteur A-Z</SelectItem>
+                        <SelectItem value="year" className="rounded-lg">Année (récent)</SelectItem>
+                        <SelectItem value="availability" className="rounded-lg">Disponibilité</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -516,118 +491,115 @@ const Catalogue = () => {
             <h3 className="text-2xl font-light text-gray-900 mb-4">Aucun livre trouvé</h3>
             <p className="text-gray-600">Essayez de modifier vos critères de recherche</p>
           </motion.div>
-        ) : (
-          Array.isArray(filteredBooks) ? (
-            <motion.div 
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              {filteredBooks.map((book) => (
-                <motion.div
-                  key={book.id}
-                  variants={itemVariants}
-                  className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl"
-                >
-                  {/* Image - Format portrait comme un vrai livre */}
-                  <div className="relative h-72 overflow-hidden rounded-t-xl">
-                    <img
-                      src={getBookImage(book)}
-                      alt={book.title}
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
-                    {/* Badge de disponibilité seulement */}
-                    <div className="absolute top-3 right-3">
-                      <Badge 
-                        variant={book.available_quantity > 0 ? "default" : "destructive"}
-                        className={`${book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"} rounded-full px-2 py-1 text-xs`}
-                      >
-                        {book.available_quantity > 0 ? "●" : "●"}
-                      </Badge>
-                    </div>
-                    
-                    {/* Genre en bas de l'image */}
-                    <div className="absolute bottom-3 left-3">
-                      <Badge 
-                        variant="secondary" 
-                        className="bg-black/80 text-white font-medium rounded-full px-2 py-1 text-xs"
-                      >
-                        {book.genre}
-                      </Badge>
-                    </div>
+        ) : Array.isArray(filteredBooks) ? (
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {filteredBooks.map((book) => (
+              <motion.div
+                key={book.id}
+                variants={itemVariants}
+                className="group bg-white border border-gray-200 hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl"
+              >
+                {/* Image - Format portrait comme un vrai livre */}
+                <div className="relative h-72 overflow-hidden rounded-t-xl">
+                  <img
+                    src={getBookImage(book)}
+                    alt={book.title}
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  {/* Badge de disponibilité seulement */}
+                  <div className="absolute top-3 right-3">
+                    <Badge 
+                      variant={book.available_quantity > 0 ? "default" : "destructive"}
+                      className={`${book.available_quantity > 0 ? "bg-green-600" : "bg-red-600"} rounded-full px-2 py-1 text-xs`}
+                    >
+                      {book.available_quantity > 0 ? "●" : "●"}
+                    </Badge>
+                  </div>
+                  
+                  {/* Genre en bas de l'image */}
+                  <div className="absolute bottom-3 left-3">
+                    <Badge 
+                      variant="secondary" 
+                      className="bg-black/80 text-white font-medium rounded-full px-2 py-1 text-xs"
+                    >
+                      {book.genre}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Contenu - Plus compact */}
+                <div className="p-4">
+                  <h3 className="text-base font-medium text-gray-900 mb-2 group-hover:text-black transition-colors line-clamp-2">
+                    {book.title}
+                  </h3>
+                  
+                  <div className="text-gray-600 mb-2">
+                    <span className="text-sm line-clamp-1">{book.author}</span>
+                  </div>
+                  
+                  <div className="text-gray-500 mb-3">
+                    <span className="text-xs">{book.publication_year}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs text-gray-500">
+                      {book.available_quantity}/{book.total_quantity} dispo.
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {book.isbn.slice(-4)}
+                    </span>
                   </div>
 
-                  {/* Contenu - Plus compact */}
-                  <div className="p-4">
-                    <h3 className="text-base font-medium text-gray-900 mb-2 group-hover:text-black transition-colors line-clamp-2">
-                      {book.title}
-                    </h3>
-                    
-                    <div className="text-gray-600 mb-2">
-                      <span className="text-sm line-clamp-1">{book.author}</span>
-                    </div>
-                    
-                    <div className="text-gray-500 mb-3">
-                      <span className="text-xs">{book.publication_year}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-gray-500">
-                        {book.available_quantity}/{book.total_quantity} dispo.
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {book.isbn.slice(-4)}
-                      </span>
-                    </div>
-
-                    {/* Actions - Plus compactes */}
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-lg text-xs"
-                        onClick={() => window.location.href = `/livre/${book.id}`}
-                      >
-                        Voir
-                      </Button>
-                      <Button 
-                        size="sm"
-                        className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg text-xs"
-                        disabled={book.available_quantity === 0}
-                        onClick={() => {
-                          if (book.available_quantity > 0) {
-                            setSelectedBook(book)
-                            setShowBorrowModal(true)
-                            setBorrowError('')
-                            setBorrowSuccess('')
-                            // Init dates
-                            const today = new Date()
-                            const todayStr = today.toISOString().split('T')[0]
-                            setBorrowStartDate(todayStr)
-                            // Par défaut, retour = aujourd'hui + 7 jours
-                            const end = new Date(today)
-                            end.setDate(end.getDate() + 7)
-                            setBorrowEndDate(end.toISOString().split('T')[0])
-                            setComments('')
-                          }
-                        }}
-                      >
-                        Emprunter
-                      </Button>
-                    </div>
+                  {/* Actions - Plus compactes */}
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all rounded-lg text-xs"
+                      onClick={() => window.location.href = `/livre/${book.id}`}
+                    >
+                      Voir
+                    </Button>
+                    <Button 
+                      size="sm"
+                      className="flex-1 bg-black hover:bg-gray-800 text-white rounded-lg text-xs"
+                      disabled={book.available_quantity === 0}
+                      onClick={() => {
+                        if (book.available_quantity > 0) {
+                          setSelectedBook(book)
+                          setShowBorrowModal(true)
+                          setBorrowError('')
+                          setBorrowSuccess('')
+                          // Init dates
+                          const today = new Date()
+                          const todayStr = today.toISOString().split('T')[0]
+                          setBorrowStartDate(todayStr)
+                          // Par défaut, retour = aujourd'hui + 7 jours
+                          const end = new Date(today)
+                          end.setDate(end.getDate() + 7)
+                          setBorrowEndDate(end.toISOString().split('T')[0])
+                          setComments('')
+                        }
+                      }}
+                    >
+                      Emprunter
+                    </Button>
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : null
-        )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : null}
       </div>
       
       <Footer />
-
       {/* Modale d'emprunt */}
       <Dialog open={showBorrowModal} onOpenChange={setShowBorrowModal}>
         {selectedBook && (
@@ -650,7 +622,6 @@ const Catalogue = () => {
                 <div className="text-gray-600 mb-1">Auteur : {selectedBook.author}</div>
                 <div className="text-gray-500 text-sm">Genre : {selectedBook.genre}</div>
               </div>
-              {/* Ici, on peut ajouter d'autres champs si besoin (date de retour, etc.) */}
               <div className="mb-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
                 <input
@@ -720,9 +691,6 @@ const Catalogue = () => {
                     })
                     const data = await res.json()
                     if (!res.ok || !data.success) {
-                      // Affiche tout le contenu de la réponse d'erreur
-                      console.error('Erreur backend:', JSON.stringify(data))
-                      // Affiche le message d'erreur le plus explicite possible dans l'UI
                       setBorrowError(data.message || data.error || data.detail || JSON.stringify(data) || 'Erreur lors de l\'emprunt')
                       throw new Error(data.message || data.error || data.detail || 'Erreur lors de l\'emprunt')
                     }

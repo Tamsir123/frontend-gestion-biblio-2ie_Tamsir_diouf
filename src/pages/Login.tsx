@@ -260,7 +260,7 @@ const Login = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <p><strong>Demo Admin :</strong> admin@biblio.com / AdminPass123</p>
+            <p><strong>Demo Admin :</strong> tamsir@admin.2ie.edu.org / AdminPass123</p>
             <p><strong>Demo Étudiant :</strong> john.doe@example.com / Password123</p>
           </motion.div>
         </div>

@@ -270,6 +270,12 @@ const AdminBooks = () => {
     }
   }
 
+  // Ouvre le formulaire d'ajout avec un formData vierge
+  const openAddDialog = () => {
+    resetForm();
+    setShowAddDialog(true);
+  };
+
   const openEditDialog = (book: Book) => {
     setEditingBook(book)
     setFormData({
@@ -519,9 +525,9 @@ const AdminBooks = () => {
                 Actualiser
               </Button>
               {/* Ajouter un livre */}
-              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <Dialog open={showAddDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowAddDialog(open); }}>
                 <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700">
+                  <Button className="bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700" onClick={openAddDialog}>
                     <Plus className="w-4 h-4 mr-2" />
                     Ajouter un livre
                   </Button>

@@ -182,6 +182,7 @@ const AdminBooks = () => {
     console.log('handleEditBook - editingBook:', editingBook);
     console.log('handleEditBook - formData:', formData);
     console.log('handleEditBook - modifiedFields:', modifiedFields);
+    // Validation : empêcher l'envoi si aucun champ modifié ou si titre/auteur vides
     if (Object.keys(modifiedFields).length === 0) {
       toast({
         title: "Aucune modification",
@@ -190,7 +191,17 @@ const AdminBooks = () => {
       });
       return;
     }
-
+    if ((modifiedFields.title !== undefined && !modifiedFields.title.trim()) ||
+        (modifiedFields.author !== undefined && !modifiedFields.author.trim())) {
+      toast({
+        title: "Champs obligatoires",
+        description: "Le titre et l'auteur ne peuvent pas être vides.",
+        variant: "destructive"
+      });
+      return;
+    }
+    // Log du payload JSON envoyé
+    console.log('handleEditBook - payload JSON:', JSON.stringify(modifiedFields));
     try {
       const token = localStorage.getItem('token');
       console.log('handleEditBook - requête PUT', `${import.meta.env.VITE_API_URL}/api/books/${editingBook.id}`, modifiedFields);

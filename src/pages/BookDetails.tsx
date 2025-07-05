@@ -417,7 +417,13 @@ const BookDetails = () => {
           variant: "default"
         })
       } else {
-        const data = await response.json()
+        let data = null;
+        try {
+          const text = await response.text();
+          data = text ? JSON.parse(text) : { message: 'Erreur inconnue (réponse vide)' };
+        } catch (e) {
+          data = { message: 'Erreur inconnue (réponse non JSON)' };
+        }
         toast({
           title: "Erreur",
           description: data.message || 'Erreur lors de l\'emprunt',

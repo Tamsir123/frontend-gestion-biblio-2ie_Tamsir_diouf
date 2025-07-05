@@ -224,11 +224,19 @@ const ProfilNew = () => {
 
   const getProfileImage = () => {
     if (profile?.profile_image) {
-      return profile.profile_image.startsWith('/') 
-        ? `${import.meta.env.VITE_API_URL}${profile.profile_image}`
-        : profile.profile_image
+      if (
+        profile.profile_image.startsWith('/uploads/profiles') ||
+        profile.profile_image.startsWith('uploads/profiles')
+      ) {
+        return `${import.meta.env.VITE_API_URL}/${profile.profile_image.startsWith('/') ? profile.profile_image.slice(1) : profile.profile_image}`;
+      }
+      if (profile.profile_image.startsWith('http')) {
+        return profile.profile_image;
+      }
+      // fallback
+      return `${import.meta.env.VITE_API_URL}/uploads/profiles/${profile.profile_image}`;
     }
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&size=200&background=000000&color=ffffff&bold=true`
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.name || 'User')}&size=200&background=000000&color=ffffff&bold=true`;
   }
 
   const getLevelBadgeColor = (level: string) => {

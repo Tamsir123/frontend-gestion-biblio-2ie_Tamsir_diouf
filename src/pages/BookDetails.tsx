@@ -442,17 +442,16 @@ const BookDetails = () => {
     // Priorité 1: Image réelle uploadée lors de l'ajout du livre
     if (book.cover_image) {
       let imageUrl = book.cover_image;
-      
-      // Si le chemin commence par /uploads/ ou uploads/, construire l'URL complète
-      if (book.cover_image.startsWith('/uploads/') || book.cover_image.startsWith('uploads/')) {
-        imageUrl = `${import.meta.env.VITE_API_URL}${book.cover_image.startsWith('/') ? '' : '/'}${book.cover_image}`;
-      }
-      // Si ce n'est pas une URL complète, construire l'URL avec le serveur backend
-      else if (!book.cover_image.startsWith('http')) {
+      if (
+        book.cover_image.startsWith('/uploads/covers') ||
+        book.cover_image.startsWith('uploads/covers')
+      ) {
+        imageUrl = `${import.meta.env.VITE_API_URL}/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`;
+      } else if (book.cover_image.startsWith('http')) {
+        imageUrl = book.cover_image;
+      } else {
         imageUrl = `${import.meta.env.VITE_API_URL}/uploads/covers/${book.cover_image}`;
       }
-      
-      console.log('URL image finale:', imageUrl);
       return imageUrl;
     }
 

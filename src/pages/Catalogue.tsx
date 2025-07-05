@@ -239,7 +239,7 @@ const Catalogue = () => {
     // Priorité 3: Images par genre comme fallback
     const genreImages: { [key: string]: string } = {
       'Technologie': 'https://images.unsplash.com/photo-1518709268805-4e9042af2ea0?w=300&h=400&fit=crop',
-      'Histoire': 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop',
+      'Histoire': 'https://images.unsplash.com/photo-1481627834876-b783e8f5570?w=300&h=400&fit=crop',
       'Sciences': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
       'Littérature': 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop',
       'Ingénierie': 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=300&h=400&fit=crop',
@@ -646,13 +646,30 @@ const Catalogue = () => {
                       },
                       body: JSON.stringify(body)
                     })
-                    const data = await res.json()
-                    if (!res.ok || !data.success) {
+                    let data = null
+                    let isJson = false
+                    const contentType = res.headers.get('content-type')
+                    if (contentType && contentType.includes('application/json')) {
+                      try {
+                        data = await res.json()
+                        isJson = true
+                      } catch (err) {
+                        // JSON.parse error
+                        data = null
+                        isJson = false
+                      }
+                    }
+                    if (!res.ok || !isJson || !data || data.success === false) {
                       // Affiche tout le contenu de la réponse d'erreur
-                      console.error('Erreur backend:', JSON.stringify(data))
-                      // Affiche le message d'erreur le plus explicite possible dans l'UI
-                      setBorrowError(data.message || data.error || data.detail || JSON.stringify(data) || 'Erreur lors de l\'emprunt')
-                      throw new Error(data.message || data.error || data.detail || 'Erreur lors de l\'emprunt')
+                      console.error('Erreur backend:', data)
+                      setBorrowError(
+                        (data && (data.message || data.error || data.detail)) ||
+                        (!isJson ? 'Réponse du serveur invalide ou vide.' : 'Erreur lors de l\'emprunt')
+                      )
+                      throw new Error(
+                        (data && (data.message || data.error || data.detail)) ||
+                        (!isJson ? 'Réponse du serveur invalide ou vide.' : 'Erreur lors de l\'emprunt')
+                      )
                     }
                     setBorrowSuccess('Emprunt enregistré !')
                     setTimeout(() => setShowBorrowModal(false), 1200)

@@ -54,7 +54,7 @@ const MesEmprunts = () => {
       if (!token) return
 
       // Récupérer les avis de l'utilisateur
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/reviews/my-reviews', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/my-reviews`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -86,7 +86,7 @@ const MesEmprunts = () => {
         console.error('Aucun token trouvé. Veuillez vous reconnecter.')
         return
       }
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings/my-borrowings', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/borrowings/my-borrowings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -34,7 +34,7 @@ const Projects = () => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const response = await fetch('${import.meta.env.VITE_API_URL}/api/books?limit=8');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books?limit=8`);
         if (response.ok) {
           const data = await response.json();
           const booksArray = Array.isArray(data?.data?.books) ? data.data.books : [];
@@ -338,7 +338,7 @@ const Projects = () => {
                           {/* Genre élégant */}
                           <div className="absolute bottom-6 left-6 z-30">
                             <div className="px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/20">
-                              <span className="text-white text-xs font-medium tracking-wide uppercase">
+                              <span className="text-white text-xs font-medium tracking-wide">
                                 {book.genre}
                               </span>
                             </div>

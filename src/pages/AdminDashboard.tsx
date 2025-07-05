@@ -198,13 +198,13 @@ const AdminDashboard = () => {
       
       // Récupérer les statistiques réelles depuis l'API
       const [booksRes, usersRes, borrowingsRes] = await Promise.all([
-        fetch('${import.meta.env.VITE_API_URL}/api/books', {
+        fetch(`${import.meta.env.VITE_API_URL}/api/books`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('${import.meta.env.VITE_API_URL}/api/users', {
+        fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null), // En cas d'erreur, continuer sans les users
-        fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
+        fetch(`${import.meta.env.VITE_API_URL}/api/borrowings`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).catch(() => null) // En cas d'erreur, continuer sans les emprunts
       ])
@@ -303,9 +303,9 @@ const AdminDashboard = () => {
     setBooksLoading(true)
     try {
       console.log('=== RÉCUPÉRATION DES LIVRES ===')
-      console.log('URL:', '${import.meta.env.VITE_API_URL}/api/books')
+      console.log('URL:', `${import.meta.env.VITE_API_URL}/api/books`)
       
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/books')
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/books`)
       console.log('Statut de la réponse:', res.status, res.statusText)
       
       const data = await res.json()
@@ -347,9 +347,9 @@ const AdminDashboard = () => {
         return
       }
 
-      console.log('URL:', '${import.meta.env.VITE_API_URL}/api/borrowings')
+      console.log('URL:', `${import.meta.env.VITE_API_URL}/api/borrowings`)
       
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/borrowings`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -415,9 +415,9 @@ const AdminDashboard = () => {
         }
       }
 
-      console.log('URL:', '${import.meta.env.VITE_API_URL}/api/users')
+      console.log('URL:', `${import.meta.env.VITE_API_URL}/api/users`)
       
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/users', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -465,7 +465,7 @@ const AdminDashboard = () => {
         return
       }
 
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/users', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -664,10 +664,10 @@ const AdminDashboard = () => {
       }
 
       console.log('Données à envoyer:', Object.fromEntries(formData))
-      console.log('URL de requête:', '${import.meta.env.VITE_API_URL}/api/books')
+      console.log('URL de requête:', `${import.meta.env.VITE_API_URL}/api/books`)
       console.log('Headers:', { 'Authorization': `Bearer ${token.substring(0, 20)}...` })
 
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/books', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/books`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -1624,7 +1624,7 @@ const AdminDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center">
                     <FileText className="h-8 w-8 text-blue-600" />
-                    <div className="ml-4">
+                    <div className="ml-3">
                       <p className="text-sm font-medium text-gray-600">Total emprunts</p>
                       <p className="text-2xl font-bold text-gray-900">{borrowingsStats?.total || borrowings.length}</p>
                       <p className="text-xs text-gray-500">Tous les emprunts</p>

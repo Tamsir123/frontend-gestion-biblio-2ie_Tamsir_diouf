@@ -109,7 +109,7 @@ const Catalogue = () => {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/genres')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/genres`)
       if (response.ok) {
         const data = await response.json()
         let genresArr = []
@@ -145,7 +145,7 @@ const Catalogue = () => {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/books/popular-authors')
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/popular-authors`)
       if (response.ok) {
         const data = await response.json()
         let authorsArr = []
@@ -710,7 +710,7 @@ const Catalogue = () => {
                       comment_text: comments || ''
                     }
                     console.log('POST /api/borrowings body:', body)
-                    const res = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/borrowings`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',

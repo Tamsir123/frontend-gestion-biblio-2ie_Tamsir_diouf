@@ -34,7 +34,7 @@ const Projects = () => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const response = await fetch('${import.meta.env.VITE_API_URL}/api/books?limit=8');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books?limit=8`);
         if (response.ok) {
           const data = await response.json();
           const booksArray = Array.isArray(data?.data?.books) ? data.data.books : [];

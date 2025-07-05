@@ -396,7 +396,7 @@ const BookDetails = () => {
       dueDate.setDate(dueDate.getDate() + 15)
       const dueDateString = dueDate.toISOString().split('T')[0] // Format YYYY-MM-DD
 
-      const response = await fetch('${import.meta.env.VITE_API_URL}/api/borrowings', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/borrowings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

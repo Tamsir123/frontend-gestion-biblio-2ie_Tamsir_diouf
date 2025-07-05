@@ -158,40 +158,64 @@ const AdminBooks = () => {
     }
   }
 
+  // Fonction utilitaire pour ne garder que les champs modifiés et non vides
+  function getModifiedFields(original: Book, updated: BookFormData) {
+    const fields: Partial<BookFormData> = {};
+    Object.keys(updated).forEach((key) => {
+      // @ts-ignore
+      if (updated[key] !== undefined && updated[key] !== null && updated[key] !== '' && updated[key] !== original[key]) {
+        // @ts-ignore
+        fields[key] = updated[key];
+      }
+    });
+    return fields;
+  }
+
   const handleEditBook = async () => {
-    if (!editingBook) return
+    if (!editingBook) return;
+
+    // Ne garder que les champs modifiés et non vides
+    const modifiedFields = getModifiedFields(editingBook, formData);
+    if (Object.keys(modifiedFields).length === 0) {
+      toast({
+        title: "Aucune modification",
+        description: "Aucun champ n'a été modifié.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${editingBook.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
-      })
+        body: JSON.stringify(modifiedFields)
+      });
 
       if (response.ok) {
         toast({
           title: "Succès",
           description: "Livre modifié avec succès"
-        })
-        setShowEditDialog(false)
-        setEditingBook(null)
-        resetForm()
-        fetchBooks()
+        });
+        setShowEditDialog(false);
+        setEditingBook(null);
+        resetForm();
+        fetchBooks();
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Erreur lors de la modification')
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la modification');
       }
     } catch (error) {
-      console.error('Erreur:', error)
+      console.error('Erreur:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le livre",
         variant: "destructive"
-      })
+      });
     }
   }
 

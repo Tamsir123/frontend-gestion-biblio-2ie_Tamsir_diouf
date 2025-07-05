@@ -162,9 +162,12 @@ const AdminBooks = () => {
   function getModifiedFields(original: Book, updated: BookFormData) {
     const fields: Partial<BookFormData> = {};
     Object.keys(updated).forEach((key) => {
-     
-      if (updated[key] !== undefined && updated[key] !== null && updated[key] !== '' && updated[key] !== original[key]) {
-       
+      if (
+        updated[key] !== undefined &&
+        updated[key] !== null &&
+        updated[key] !== '' &&
+        updated[key] !== original[key]
+      ) {
         fields[key] = updated[key];
       }
     });
@@ -174,8 +177,11 @@ const AdminBooks = () => {
   const handleEditBook = async () => {
     if (!editingBook) return;
 
-    // Ne garder que les champs modifiés et non vides
+    // Utilise la fonction utilitaire pour ne garder que les champs modifiés et non vides
     const modifiedFields = getModifiedFields(editingBook, formData);
+    console.log('handleEditBook - editingBook:', editingBook);
+    console.log('handleEditBook - formData:', formData);
+    console.log('handleEditBook - modifiedFields:', modifiedFields);
     if (Object.keys(modifiedFields).length === 0) {
       toast({
         title: "Aucune modification",
@@ -187,6 +193,7 @@ const AdminBooks = () => {
 
     try {
       const token = localStorage.getItem('token');
+      console.log('handleEditBook - requête PUT', `${import.meta.env.VITE_API_URL}/api/books/${editingBook.id}`, modifiedFields);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${editingBook.id}`, {
         method: 'PUT',
         headers: {
@@ -206,8 +213,18 @@ const AdminBooks = () => {
         resetForm();
         fetchBooks();
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la modification');
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { message: 'Erreur inconnue', raw: await response.text() };
+        }
+        console.error('Erreur backend:', errorData);
+        toast({
+          title: "Erreur",
+          description: errorData.message || 'Impossible de modifier le livre',
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Erreur:', error);
@@ -406,7 +423,6 @@ const AdminBooks = () => {
       </div>
     </div>
   )
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -428,7 +444,6 @@ const AdminBooks = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
       {/* Hero Section */}
       <motion.div 
         className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-black overflow-hidden"
@@ -444,7 +459,6 @@ const AdminBooks = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40"></div>
         </div>
-        
         <div className="relative container mx-auto px-4 py-20">
           <motion.div 
             className="max-w-3xl"
@@ -462,15 +476,13 @@ const AdminBooks = () => {
           </motion.div>
         </div>
       </motion.div>
-
       {/* Contenu principal */}
       <motion.div 
         className="container mx-auto px-4 py-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-      >
-        {/* Barre d'outils */}
+      > {/* Barre d'outils */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex flex-col md:flex-row gap-4 flex-1">
@@ -484,7 +496,6 @@ const AdminBooks = () => {
                   className="pl-10"
                 />
               </div>
-
               {/* Filtre par genre */}
               <div className="min-w-[200px]">
                 <Select value={selectedGenre} onValueChange={setSelectedGenre}>
@@ -501,14 +512,12 @@ const AdminBooks = () => {
                 </Select>
               </div>
             </div>
-
             <div className="flex gap-2">
               {/* Actualiser */}
               <Button variant="outline" onClick={fetchBooks}>
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Actualiser
               </Button>
-
               {/* Ajouter un livre */}
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
@@ -527,7 +536,6 @@ const AdminBooks = () => {
             </div>
           </div>
         </div>
-
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <motion.div 
@@ -542,7 +550,6 @@ const AdminBooks = () => {
               </div>
             </div>
           </motion.div>
-
           <motion.div 
             className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
             whileHover={{ y: -4, shadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
@@ -555,7 +562,6 @@ const AdminBooks = () => {
               </div>
             </div>
           </motion.div>
-
           <motion.div 
             className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
             whileHover={{ y: -4, shadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
@@ -570,7 +576,6 @@ const AdminBooks = () => {
               </div>
             </div>
           </motion.div>
-
           <motion.div 
             className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
             whileHover={{ y: -4, shadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
@@ -586,9 +591,8 @@ const AdminBooks = () => {
             </div>
           </motion.div>
         </div>
-
         {/* Liste des livres */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBooks.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-3xl shadow-sm border border-gray-100">
               <BookOpen className="w-20 h-20 text-gray-300 mx-auto mb-6" />
@@ -617,9 +621,8 @@ const AdminBooks = () => {
                       alt={book.title}
                       className="w-20 h-28 object-cover rounded-2xl shadow-md"
                     />
-
                     {/* Informations du livre */}
-                    <div className="flex-1">
+                    <div className="flex-1 flex flex-col justify-between mb-4">
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-xl font-bold text-gray-900 mb-2">{book.title}</h3>
@@ -633,21 +636,16 @@ const AdminBooks = () => {
                           </Badge>
                         </div>
                       </div>
-
                       {/* Description */}
                       {book.description && (
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                          {book.description}
-                        </p>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{book.description}</p>
                       )}
-
                       {/* Métadonnées */}
                       <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                         <span>Publié en {book.publication_year}</span>
                         <span>•</span>
                         <span>Ajouté le {new Date(book.created_at).toLocaleDateString('fr-FR')}</span>
                       </div>
-
                       {/* Actions */}
                       <div className="flex gap-2">
                         <Button
@@ -675,7 +673,6 @@ const AdminBooks = () => {
             ))
           )}
         </div>
-
         {/* Dialog de modification */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -686,10 +683,8 @@ const AdminBooks = () => {
           </DialogContent>
         </Dialog>
       </motion.div>
-
       <Footer />
     </div>
   )
 }
-
 export default AdminBooks

@@ -204,7 +204,13 @@ const MesEmprunts = () => {
         })
         fetchMyBorrowings() // Actualiser la liste
       } else {
-        const errorData = await response.json()
+        let errorData = null;
+        try {
+          const text = await response.text();
+          errorData = text ? JSON.parse(text) : { message: "Impossible de renouveler l'emprunt (réponse vide)" };
+        } catch (e) {
+          errorData = { message: "Impossible de renouveler l'emprunt (réponse non JSON)" };
+        }
         toast({
           title: "Erreur",
           description: errorData.message || "Impossible de renouveler l'emprunt",
@@ -254,7 +260,13 @@ const MesEmprunts = () => {
         })
         fetchMyBorrowings() // Actualiser la liste
       } else {
-        const errorData = await response.json()
+        let errorData = null;
+        try {
+          const text = await response.text();
+          errorData = text ? JSON.parse(text) : { message: "Impossible de retourner le livre (réponse vide)" };
+        } catch (e) {
+          errorData = { message: "Impossible de retourner le livre (réponse non JSON)" };
+        }
         toast({
           title: "Erreur",
           description: errorData.message || "Impossible de retourner le livre",

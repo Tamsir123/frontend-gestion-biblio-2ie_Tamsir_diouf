@@ -203,7 +203,21 @@ const Catalogue = () => {
     setSortBy('title')
   }
 
-  const getBookImage = (book: Book) => {
+  const getBookImage = (book: Book & { cover_image?: string }) => {
+    // Priorité 1: Image réelle uploadée lors de l'ajout du livre
+    if (book.cover_image) {
+      // Si c'est un chemin relatif, construire l'URL complète vers le serveur
+      if (book.cover_image.startsWith('/uploads/covers') || book.cover_image.startsWith('uploads/covers')) {
+        return `${import.meta.env.VITE_API_URL}/${book.cover_image.startsWith('/') ? book.cover_image.slice(1) : book.cover_image}`
+      }
+      // Si c'est déjà une URL complète
+      if (book.cover_image.startsWith('http')) {
+        return book.cover_image
+      }
+      // Sinon, construire l'URL
+      return `${import.meta.env.VITE_API_URL}/uploads/${book.cover_image}`
+    }
+    // Priorité 2: Images par genre comme fallback
     const genreImages: { [key: string]: string } = {
       'Technologie': 'https://images.unsplash.com/photo-1518709268805-4e9042af2ea0?w=600&h=400&fit=crop',
       'Histoire': 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=400&fit=crop',

@@ -16,19 +16,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminBooks from "./pages/AdminBooks";
 import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
-import FireCatProject from "./pages/FireCatProject";
-import SportRetailProject from "./pages/SportRetailProject";
-import WorkwearProject from "./pages/WorkwearProject";
-import HockeyProject from "./pages/HockeyProject";
-import PetProject from "./pages/PetProject";
-import TechDetails from "./pages/TechDetails";
-import DevelopmentProcess from "./pages/DevelopmentProcess";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import Events from "./pages/Events";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Blog from "./pages/Blog";
-import BlogPostDetail from "./pages/BlogPostDetail";
+
 
 const App = () => {
   const [queryClient] = useState(() => new QueryClient());
@@ -60,19 +51,11 @@ const App = () => {
               </AdminRoute>
             } />
             
-            <Route path="/projects/firecat" element={<FireCatProject />} />
-            <Route path="/projects/sport-retail" element={<SportRetailProject />} />
-            <Route path="/projects/workwear" element={<WorkwearProject />} />
-            <Route path="/projects/hockey" element={<HockeyProject />} />
-            <Route path="/projects/pet-tracker" element={<PetProject />} />
-            <Route path="/tech-details" element={<TechDetails />} />
-            <Route path="/development-process" element={<DevelopmentProcess />} />
+
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPostDetail />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

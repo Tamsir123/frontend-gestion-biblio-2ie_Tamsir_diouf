@@ -213,7 +213,7 @@ const Catalogue = () => {
         return book.cover_image
       }
       // Sinon, construire l'URL
-      const imageUrl = `${import.meta.env.VITE_API_URL}/uploads/${book.cover_image}`
+      const imageUrl = `${import.meta.env.VITE_API_URL}/uploads/covers/${book.cover_image}`
       console.log('URL image construite (fallback):', imageUrl)
       return imageUrl
     }

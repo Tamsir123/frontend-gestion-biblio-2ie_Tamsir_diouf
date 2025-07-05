@@ -162,9 +162,9 @@ const AdminBooks = () => {
   function getModifiedFields(original: Book, updated: BookFormData) {
     const fields: Partial<BookFormData> = {};
     Object.keys(updated).forEach((key) => {
-      // @ts-ignore
+     
       if (updated[key] !== undefined && updated[key] !== null && updated[key] !== '' && updated[key] !== original[key]) {
-        // @ts-ignore
+       
         fields[key] = updated[key];
       }
     });
